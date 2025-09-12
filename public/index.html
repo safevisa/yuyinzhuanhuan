@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Voice Morph - AI Voice Transformation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-microphone-alt"></i>
+                    <span data-i18n="brand">VoiceMorph</span>
+                </div>
+                
+                <!-- Controls -->
+                <div class="controls">
+                    <!-- User Menu -->
+                    <div class="user-menu" id="userMenu" style="display: none;">
+                        <button class="user-button" id="userButton">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName"></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="#" id="dashboardLink" data-i18n="user.dashboard">Dashboard</a>
+                            <a href="#" id="profileLink" data-i18n="user.profile">Profile</a>
+                            <a href="#" id="logoutLink" data-i18n="user.logout">Logout</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Auth Buttons -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button class="auth-btn login-btn" id="loginBtn" data-i18n="auth.login">Login</button>
+                        <button class="auth-btn register-btn" id="registerBtn" data-i18n="auth.register">Register</button>
+                    </div>
+                    
+                    <!-- Language Selector -->
+                    <select id="languageSelect" class="language-select">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                        <option value="es">Español</option>
+                    </select>
+                    
+                    <!-- Theme Toggle -->
+                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-badge">
+                    <span>✨</span>
+                    <span data-i18n="hero.powered">Powered by Advanced AI</span>
+                </div>
+                <h1 data-i18n="hero.title">Transform Your <span class="gradient-text">Voice Instantly</span></h1>
+                <p data-i18n="hero.subtitle">Convert any voice to any voice with our cutting-edge AI technology. Upload your audio, choose your target voice, and get professional results in seconds.</p>
+                
+                <div class="hero-actions">
+                    <button class="hero-btn primary" id="heroStartBtn">
+                        <span data-i18n="hero.start">Start Converting Now</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="hero-btn secondary" id="heroDemoBtn">
+                        <i class="fas fa-play"></i>
+                        <span data-i18n="hero.demo">Watch Demo</span>
+                    </button>
+                </div>
+                
+                <div class="hero-features">
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span data-i18n="hero.free_trial">Free trial available</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span data-i18n="hero.instant">Instant results</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span data-i18n="hero.secure">Secure processing</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- How It Works Section -->
+            <section class="how-it-works">
+                <div class="section-header">
+                    <h2 data-i18n="how.title">How It Works</h2>
+                    <p data-i18n="how.subtitle">Convert your voice in three simple steps</p>
+                </div>
+                
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="step-number">1</div>
+                        <h3 data-i18n="how.step1.title">Upload Audio</h3>
+                        <p data-i18n="how.step1.desc">Upload your audio file or record directly using your microphone. We support all major audio formats.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                        <div class="step-number">2</div>
+                        <h3 data-i18n="how.step2.title">Choose Voice</h3>
+                        <p data-i18n="how.step2.desc">Select from our library of premium voices or upload a sample to create a custom voice profile.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="step-number">3</div>
+                        <h3 data-i18n="how.step3.title">Download Result</h3>
+                        <p data-i18n="how.step3.desc">Get your converted audio in seconds. Download in your preferred format with studio-quality results.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Voice Recorder -->
+            <section class="recorder-section">
+                <div class="recorder-card">
+                    <div class="recorder-header">
+                        <h2 data-i18n="recorder.title">Voice Recorder</h2>
+                        <div class="recording-status" id="recordingStatus">
+                            <span data-i18n="recorder.ready">Ready to record</span>
+                        </div>
+                    </div>
+
+                    <div class="recorder-controls">
+                        <button id="recordBtn" class="record-btn" data-action="start">
+                            <i class="fas fa-microphone"></i>
+                            <span data-i18n="recorder.start">Start Recording</span>
+                        </button>
+                        
+                        <button id="stopBtn" class="stop-btn" disabled>
+                            <i class="fas fa-stop"></i>
+                            <span data-i18n="recorder.stop">Stop</span>
+                        </button>
+                        
+                        <button id="playBtn" class="play-btn" disabled>
+                            <i class="fas fa-play"></i>
+                            <span data-i18n="recorder.play">Play</span>
+                        </button>
+                    </div>
+
+                    <!-- Audio visualizer -->
+                    <div class="audio-visualizer" id="audioVisualizer">
+                        <canvas id="visualizerCanvas"></canvas>
+                    </div>
+
+                    <!-- Upload option -->
+                    <div class="upload-section">
+                        <div class="divider">
+                            <span data-i18n="upload.or">OR</span>
+                        </div>
+                        
+                        <div class="file-upload">
+                            <input type="file" id="audioFile" accept="audio/*" hidden>
+                            <button class="upload-btn" onclick="document.getElementById('audioFile').click()">
+                                <i class="fas fa-upload"></i>
+                                <span data-i18n="upload.button">Upload Audio File</span>
+                            </button>
+                            <p class="upload-info" data-i18n="upload.info">Max 10MB • MP3, WAV, WEBM supported</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Effects Section -->
+            <section class="effects-section" id="effectsSection" style="display: none;">
+                <h2 data-i18n="effects.title">Choose Voice Effect</h2>
+                <div class="effects-grid" id="effectsGrid">
+                    <!-- Effects will be loaded dynamically -->
+                </div>
+            </section>
+
+            <!-- Processing -->
+            <section class="processing-section" id="processingSection" style="display: none;">
+                <div class="processing-card">
+                    <div class="spinner"></div>
+                    <h3 data-i18n="processing.title">Transforming Your Voice...</h3>
+                    <p data-i18n="processing.subtitle">Please wait while we apply the voice effect</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-card">
+                    <h2 data-i18n="results.title">Transformation Complete!</h2>
+                    <div class="audio-player">
+                        <audio id="resultAudio" controls>
+                            <span data-i18n="results.no_support">Your browser doesn't support audio playback.</span>
+                        </audio>
+                    </div>
+                    
+                    <!-- Save Recording (for logged in users) -->
+                    <div class="save-section" id="saveSection" style="display: none;">
+                        <input type="text" id="recordingTitle" placeholder="Enter recording title (optional)" class="recording-title-input">
+                    </div>
+                    
+                    <div class="results-actions">
+                        <button id="downloadBtn" class="download-btn">
+                            <i class="fas fa-download"></i>
+                            <span data-i18n="results.download">Download</span>
+                        </button>
+                        
+                        <button id="shareBtn" class="share-btn" style="display: none;">
+                            <i class="fas fa-share"></i>
+                            <span data-i18n="results.share">Share</span>
+                        </button>
+                        
+                        <button id="newRecordingBtn" class="new-btn">
+                            <i class="fas fa-plus"></i>
+                            <span data-i18n="results.new">New Recording</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Dashboard Section -->
+            <section class="dashboard-section" id="dashboardSection" style="display: none;">
+                <h2 data-i18n="dashboard.title">My Recordings</h2>
+                <div class="recordings-grid" id="recordingsGrid">
+                    <!-- Recordings will be loaded dynamically -->
+                </div>
+            </section>
+            
+            <!-- Why Choose Section -->
+            <section class="why-choose">
+                <div class="section-header">
+                    <h2 data-i18n="why.title">Why Choose VoiceMorph?</h2>
+                    <p data-i18n="why.subtitle">Industry-leading voice conversion technology with unmatched quality</p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon lightning">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3 data-i18n="features.speed.title">Lightning Fast</h3>
+                        <p data-i18n="features.speed.desc">Convert your voice in seconds with our advanced AI technology</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon security">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 data-i18n="features.security.title">Secure & Private</h3>
+                        <p data-i18n="features.security.desc">Your audio files are processed securely and never stored permanently</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon languages">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h3 data-i18n="features.languages.title">Multiple Languages</h3>
+                        <p data-i18n="features.languages.desc">Support for over 50 languages and dialects worldwide</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon quality">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 data-i18n="features.quality.title">Studio Quality</h3>
+                        <p data-i18n="features.quality.desc">Professional-grade audio output with crystal clear results</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Pricing Section -->
+            <section class="pricing">
+                <div class="section-header">
+                    <h2 data-i18n="pricing.title">Simple, Transparent Pricing</h2>
+                    <p data-i18n="pricing.subtitle">Choose the plan that fits your needs</p>
+                </div>
+                
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="plan-name" data-i18n="pricing.starter.name">Starter</div>
+                        <div class="plan-price">
+                            <span class="currency">$</span>
+                            <span class="amount">9</span>
+                            <span class="period" data-i18n="pricing.period">/month</span>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.starter.f1">10 voice conversions per month</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.starter.f2">Basic voice options</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.starter.f3">Standard quality output</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.starter.f4">Email support</span>
+                            </div>
+                        </div>
+                        <button class="plan-button" data-i18n="pricing.get_started">Get Started</button>
+                    </div>
+                    
+                    <div class="pricing-card popular">
+                        <div class="popular-badge" data-i18n="pricing.most_popular">Most Popular</div>
+                        <div class="plan-name" data-i18n="pricing.pro.name">Professional</div>
+                        <div class="plan-price">
+                            <span class="currency">$</span>
+                            <span class="amount">29</span>
+                            <span class="period" data-i18n="pricing.period">/month</span>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.pro.f1">100 voice conversions per month</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.pro.f2">Premium voice library</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.pro.f3">HD quality output</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.pro.f4">Priority support</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.pro.f5">API access</span>
+                            </div>
+                        </div>
+                        <button class="plan-button primary" data-i18n="pricing.get_started">Get Started</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="plan-name" data-i18n="pricing.enterprise.name">Enterprise</div>
+                        <div class="plan-price">
+                            <span class="currency">$</span>
+                            <span class="amount">99</span>
+                            <span class="period" data-i18n="pricing.period">/month</span>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.enterprise.f1">Unlimited conversions</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.enterprise.f2">Custom voice training</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.enterprise.f3">Ultra HD quality</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.enterprise.f4">24/7 dedicated support</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.enterprise.f5">Full API access</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span data-i18n="pricing.enterprise.f6">Custom integrations</span>
+                            </div>
+                        </div>
+                        <button class="plan-button" data-i18n="pricing.get_started">Get Started</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- CTA Section -->
+            <section class="cta">
+                <div class="cta-content">
+                    <h2 data-i18n="cta.title">Ready to Transform Your Voice?</h2>
+                    <p data-i18n="cta.subtitle">Join thousands of creators, businesses, and individuals who trust VoiceMorph for their voice conversion needs.</p>
+                    
+                    <div class="cta-actions">
+                        <button class="cta-btn primary" id="ctaStartBtn">
+                            <span data-i18n="cta.start">Start Converting Now</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        
+                        <div class="rating">
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <span data-i18n="cta.rating">4.9/5 from 2,000+ users</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-microphone-alt"></i>
+                        <span data-i18n="brand">VoiceMorph</span>
+                    </div>
+                    <p data-i18n="footer.description">Advanced AI-powered voice conversion technology that transforms your audio with professional quality results.</p>
+                    <div class="company-info">
+                        <p><strong>NEXREALM SOLUTIONS., LTD</strong></p>
+                        <p>5 South Charlotte Street</p>
+                        <p>Edinburgh, EH2 4AN</p>
+                        <p>United Kingdom</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 data-i18n="footer.product">Product</h4>
+                    <ul>
+                        <li><a href="#" data-i18n="footer.voice_conversion">Voice Conversion</a></li>
+                        <li><a href="#" data-i18n="footer.api_access">API Access</a></li>
+                        <li><a href="#" data-i18n="footer.pricing">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 data-i18n="footer.support">Support</h4>
+                    <ul>
+                        <li><a href="#" data-i18n="footer.documentation">Documentation</a></li>
+                        <li><a href="#" data-i18n="footer.contact">Contact Us</a></li>
+                        <li><a href="#" data-i18n="footer.privacy">Privacy Policy</a></li>
+                        <li><a href="#" data-i18n="footer.terms">T&C</a></li>
+                        <li><a href="#" data-i18n="footer.refund">Return & Refund Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p data-i18n="footer.copyright">&copy; 2025 NEXREALM SOLUTIONS., LTD. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="authModalTitle" data-i18n="auth.login">Login</h2>
+                <button class="modal-close" id="authModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginEmail" data-i18n="auth.email">Email</label>
+                        <input type="email" id="loginEmail" name="email" required 
+                               placeholder="your@email.com"
+                               data-i18n-placeholder="auth.email_placeholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword" data-i18n="auth.password">Password</label>
+                        <input type="password" id="loginPassword" name="password" required 
+                               placeholder="••••••••"
+                               data-i18n-placeholder="auth.password_placeholder">
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn">
+                        <span data-i18n="auth.login">Login</span>
+                    </button>
+                    
+                    <p class="auth-switch">
+                        <span data-i18n="auth.no_account">Don't have an account?</span>
+                        <a href="#" id="showRegister" data-i18n="auth.register">Register</a>
+                    </p>
+                </form>
+                
+                <!-- Register Form -->
+                <form id="registerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerUsername" data-i18n="auth.username">Username</label>
+                        <input type="text" id="registerUsername" name="username" required 
+                               placeholder="e.g. john_doe123" 
+                               data-i18n-placeholder="auth.username_placeholder">
+                        <div class="input-hint" data-i18n="auth.username_hint">3-20 characters, letters, numbers and underscores only</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerEmail" data-i18n="auth.email">Email</label>
+                        <input type="email" id="registerEmail" name="email" required 
+                               placeholder="your@email.com"
+                               data-i18n-placeholder="auth.email_placeholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword" data-i18n="auth.password">Password</label>
+                        <input type="password" id="registerPassword" name="password" required 
+                               minlength="6" placeholder="••••••••"
+                               data-i18n-placeholder="auth.password_placeholder">
+                        <div class="input-hint" data-i18n="auth.password_hint">At least 6 characters</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" data-i18n="auth.confirm_password">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required 
+                               minlength="6" placeholder="••••••••"
+                               data-i18n-placeholder="auth.password_placeholder">
+                        <div class="input-hint">
+                            <i class="fas fa-info-circle"></i>
+                            <span data-i18n="auth.confirm_hint">Repeat your password</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn">
+                        <span data-i18n="auth.register">Register</span>
+                    </button>
+                    
+                    <p class="auth-switch">
+                        <span data-i18n="auth.have_account">Already have an account?</span>
+                        <a href="#" id="showLogin" data-i18n="auth.login">Login</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="shareModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 data-i18n="share.title">Share Recording</h2>
+                <button class="modal-close" id="shareModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="share-content">
+                    <p data-i18n="share.description">Share your voice transformation with others!</p>
+                    <div class="share-url">
+                        <input type="text" id="shareUrl" readonly>
+                        <button id="copyShareUrl" class="copy-btn">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p data-i18n="loading.text">Loading...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/i18n.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

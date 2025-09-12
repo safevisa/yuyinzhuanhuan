@@ -1,0 +1,682 @@
+// Navigation and Page Management Module
+class NavigationManager {
+    constructor() {
+        this.currentSection = 'home';
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.setupSmoothScrolling();
+    }
+
+    setupEventListeners() {
+        // Footer links navigation
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href^="#"]');
+            if (link) {
+                e.preventDefault();
+                const target = link.getAttribute('href').substring(1);
+                this.scrollToSection(target);
+            }
+        });
+
+        // Pricing plan buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.plan-button')) {
+                e.preventDefault();
+                const planCard = e.target.closest('.pricing-card');
+                const planType = this.getPlanType(planCard);
+                this.handlePlanSelection(planType);
+            }
+        });
+
+        // Contact and support links
+        document.addEventListener('click', (e) => {
+            const linkText = e.target.textContent || '';
+            
+            // Handle specific footer links
+            if (e.target.matches('[data-i18n="footer.contact"]') || linkText.includes('Contact')) {
+                e.preventDefault();
+                this.showContactModal();
+            }
+            
+            if (e.target.matches('[data-i18n="footer.documentation"]') || linkText.includes('Documentation')) {
+                e.preventDefault();
+                this.showDocumentationModal();
+            }
+            
+            if (e.target.matches('[data-i18n="footer.privacy"]') || linkText.includes('Privacy')) {
+                e.preventDefault();
+                this.showPrivacyModal();
+            }
+            
+            if (e.target.matches('[data-i18n="footer.terms"]') || linkText.includes('T&C')) {
+                e.preventDefault();
+                this.showTermsModal();
+            }
+        });
+    }
+
+    setupSmoothScrolling() {
+        // Add smooth scrolling to all internal links
+        const links = document.querySelectorAll('a[href^="#"]');
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                this.scrollToSection(targetId);
+            });
+        });
+    }
+
+    scrollToSection(sectionId) {
+        let targetElement;
+        
+        switch(sectionId) {
+            case 'home':
+                targetElement = document.querySelector('.hero');
+                break;
+            case 'how-it-works':
+                targetElement = document.querySelector('.how-it-works');
+                break;
+            case 'features':
+            case 'why-choose':
+                targetElement = document.querySelector('.why-choose');
+                break;
+            case 'pricing':
+                targetElement = document.querySelector('.pricing');
+                break;
+            case 'voice-recorder':
+            case 'recorder':
+                targetElement = document.querySelector('.recorder-section');
+                break;
+            case 'contact':
+                this.showContactModal();
+                return;
+            default:
+                targetElement = document.getElementById(sectionId) || document.querySelector(`.${sectionId}`);
+        }
+
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            this.currentSection = sectionId;
+        }
+    }
+
+    getPlanType(planCard) {
+        if (planCard.querySelector('[data-i18n*="starter"]')) return 'starter';
+        if (planCard.querySelector('[data-i18n*="pro"]') || planCard.classList.contains('popular')) return 'professional';
+        if (planCard.querySelector('[data-i18n*="enterprise"]')) return 'enterprise';
+        return 'unknown';
+    }
+
+    handlePlanSelection(planType) {
+        // Check if user is logged in
+        const isLoggedIn = window.authManager && window.authManager.isLoggedIn();
+        
+        if (!isLoggedIn) {
+            // Show registration modal with plan info
+            this.showRegistrationForPlan(planType);
+        } else {
+            // Show payment modal
+            this.showPaymentModal(planType);
+        }
+    }
+
+    showRegistrationForPlan(planType) {
+        // Store selected plan for after registration
+        localStorage.setItem('selectedPlan', planType);
+        
+        // Show auth modal with registration form
+        if (window.authManager) {
+            window.authManager.showRegisterModal();
+            
+            // Show message about plan selection
+            setTimeout(() => {
+                this.showMessage(
+                    `Please register to continue with the ${planType} plan.`,
+                    'info'
+                );
+            }, 500);
+        }
+    }
+
+    showPaymentModal(planType) {
+        const planDetails = this.getPlanDetails(planType);
+        
+        // Create payment modal
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.id = 'paymentModal';
+        
+        modal.innerHTML = `
+            <div class="modal payment-modal">
+                <div class="modal-header">
+                    <h2>Complete Your Purchase</h2>
+                    <button class="modal-close" id="paymentModalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="plan-summary">
+                        <h3>${planDetails.name} Plan</h3>
+                        <div class="price-display">
+                            <span class="currency">$</span>
+                            <span class="amount">${planDetails.price}</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <ul class="features-summary">
+                            ${planDetails.features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="payment-form">
+                        <h4>Payment Information</h4>
+                        <div class="payment-methods">
+                            <button class="payment-method active" data-method="card">
+                                <i class="fas fa-credit-card"></i> Credit Card
+                            </button>
+                            <button class="payment-method" data-method="paypal">
+                                <i class="fab fa-paypal"></i> PayPal
+                            </button>
+                        </div>
+                        
+                        <div class="card-form">
+                            <div class="form-group">
+                                <label>Card Number</label>
+                                <input type="text" placeholder="1234 5678 9012 3456" maxlength="19">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Expiry Date</label>
+                                    <input type="text" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    <input type="text" placeholder="123" maxlength="4">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Cardholder Name</label>
+                                <input type="text" placeholder="John Doe">
+                            </div>
+                        </div>
+                        
+                        <button class="payment-submit-btn" onclick="navigationManager.processPayment('${planType}')">
+                            <i class="fas fa-lock"></i>
+                            Complete Payment - $${planDetails.price}/month
+                        </button>
+                        
+                        <div class="payment-security">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Your payment information is secure and encrypted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Setup event listeners
+        const closeBtn = modal.querySelector('#paymentModalClose');
+        closeBtn.addEventListener('click', () => this.closeModal(modal));
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+        
+        // Payment method switcher
+        const methodBtns = modal.querySelectorAll('.payment-method');
+        methodBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                methodBtns.forEach(b => b.classList.remove('active'));
+                e.target.closest('.payment-method').classList.add('active');
+                
+                const method = e.target.dataset.method;
+                if (method === 'paypal') {
+                    modal.querySelector('.card-form').style.display = 'none';
+                    modal.querySelector('.payment-submit-btn').innerHTML = 
+                        '<i class="fab fa-paypal"></i> Continue with PayPal';
+                } else {
+                    modal.querySelector('.card-form').style.display = 'block';
+                    modal.querySelector('.payment-submit-btn').innerHTML = 
+                        `<i class="fas fa-lock"></i> Complete Payment - $${planDetails.price}/month`;
+                }
+            });
+        });
+        
+        // Card number formatting
+        const cardInput = modal.querySelector('input[placeholder*="1234"]');
+        cardInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+        
+        // Expiry date formatting
+        const expiryInput = modal.querySelector('input[placeholder="MM/YY"]');
+        expiryInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    }
+
+    getPlanDetails(planType) {
+        const plans = {
+            starter: {
+                name: 'Starter',
+                price: 9,
+                features: [
+                    '10 voice conversions per month',
+                    'Basic voice options',
+                    'Standard quality output',
+                    'Email support'
+                ]
+            },
+            professional: {
+                name: 'Professional',
+                price: 29,
+                features: [
+                    '100 voice conversions per month',
+                    'Premium voice library',
+                    'HD quality output',
+                    'Priority support',
+                    'API access'
+                ]
+            },
+            enterprise: {
+                name: 'Enterprise',
+                price: 99,
+                features: [
+                    'Unlimited conversions',
+                    'Custom voice training',
+                    'Ultra HD quality',
+                    '24/7 dedicated support',
+                    'Full API access',
+                    'Custom integrations'
+                ]
+            }
+        };
+        
+        return plans[planType] || plans.starter;
+    }
+
+    processPayment(planType) {
+        // Simulate payment processing
+        this.showMessage('Processing payment...', 'info');
+        
+        // Show loading state
+        const submitBtn = document.querySelector('.payment-submit-btn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitBtn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+            // Close payment modal
+            const paymentModal = document.getElementById('paymentModal');
+            if (paymentModal) this.closeModal(paymentModal);
+            
+            // Show success message
+            this.showSuccessModal(planType);
+        }, 3000);
+    }
+
+    showSuccessModal(planType) {
+        const planDetails = this.getPlanDetails(planType);
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal success-modal">
+                <div class="modal-body">
+                    <div class="success-content">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h2>Payment Successful!</h2>
+                        <p>Welcome to VoiceMorph ${planDetails.name}!</p>
+                        <p>You now have access to all ${planDetails.name} features.</p>
+                        
+                        <div class="success-actions">
+                            <button class="success-btn primary" onclick="navigationManager.closeModal(this.closest('.modal-overlay')); navigationManager.scrollToSection('voice-recorder');">
+                                Start Converting Now
+                            </button>
+                            <button class="success-btn secondary" onclick="window.authManager.showDashboard(); navigationManager.closeModal(this.closest('.modal-overlay'));">
+                                View Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Auto close after 10 seconds
+        setTimeout(() => {
+            if (modal.parentNode) {
+                this.closeModal(modal);
+            }
+        }, 10000);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+    }
+
+    showContactModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Contact Us</h2>
+                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h4>Email Support</h4>
+                                <a href="mailto:support@voicemorph.com">support@voicemorph.com</a>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h4>Phone Support</h4>
+                                <span>Available for Enterprise customers</span>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h4>Address</h4>
+                                <p>NEXREALM SOLUTIONS., LTD<br>
+                                5 South Charlotte Street<br>
+                                Edinburgh, EH2 4AN<br>
+                                United Kingdom</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form">
+                        <h3>Send us a message</h3>
+                        <form id="contactForm">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <select>
+                                    <option>General Inquiry</option>
+                                    <option>Technical Support</option>
+                                    <option>Billing Question</option>
+                                    <option>Feature Request</option>
+                                    <option>Bug Report</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Message</label>
+                                <textarea rows="4" required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="contact-submit-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+        
+        // Handle form submission
+        const contactForm = modal.querySelector('#contactForm');
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.showMessage('Message sent successfully! We\'ll get back to you soon.', 'success');
+            this.closeModal(modal);
+        });
+    }
+
+    showDocumentationModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal documentation-modal">
+                <div class="modal-header">
+                    <h2>Documentation</h2>
+                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="doc-sections">
+                        <div class="doc-section">
+                            <h3><i class="fas fa-rocket"></i> Getting Started</h3>
+                            <ul>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Quick Start Guide</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">API Introduction</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Authentication</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="doc-section">
+                            <h3><i class="fas fa-code"></i> API Reference</h3>
+                            <ul>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Voice Conversion API</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Voice Models</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Rate Limits</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Error Codes</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="doc-section">
+                            <h3><i class="fas fa-book"></i> Guides & Tutorials</h3>
+                            <ul>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Best Practices</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Audio Quality Tips</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Troubleshooting</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="doc-section">
+                            <h3><i class="fas fa-question-circle"></i> FAQ</h3>
+                            <ul>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Common Questions</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Billing & Plans</a></li>
+                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Technical Issues</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+    }
+
+    showPrivacyModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Privacy Policy</h2>
+                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="policy-content">
+                        <section>
+                            <h3>Data Collection</h3>
+                            <p>We collect minimal personal information necessary to provide our voice conversion services, including email address, usage statistics, and uploaded audio files.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Audio Processing</h3>
+                            <p>Audio files are processed on our secure servers and automatically deleted within 24 hours. We do not store your audio content permanently unless explicitly requested.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Data Security</h3>
+                            <p>All data transmission is encrypted using industry-standard SSL/TLS protocols. Our servers are protected by enterprise-grade security measures.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Third-Party Services</h3>
+                            <p>We use trusted third-party services for payment processing and analytics. These services have their own privacy policies which we recommend reviewing.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Contact</h3>
+                            <p>For privacy concerns or data deletion requests, contact us at privacy@voicemorph.com</p>
+                        </section>
+                        
+                        <div class="policy-footer">
+                            <p><small>Last updated: January 2024</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+    }
+
+    showTermsModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Terms & Conditions</h2>
+                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="terms-content">
+                        <section>
+                            <h3>Service Agreement</h3>
+                            <p>By using VoiceMorph, you agree to these terms and conditions. Our service provides AI-powered voice conversion technology for legitimate purposes only.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Acceptable Use</h3>
+                            <ul>
+                                <li>Do not use the service for illegal activities</li>
+                                <li>Do not impersonate others without consent</li>
+                                <li>Respect intellectual property rights</li>
+                                <li>Do not generate harmful or offensive content</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h3>Subscription & Billing</h3>
+                            <p>Subscriptions renew automatically. You may cancel anytime through your dashboard. Refunds are available within 30 days of purchase.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Service Availability</h3>
+                            <p>We strive for 99.9% uptime but cannot guarantee uninterrupted service. Planned maintenance will be announced in advance.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Limitation of Liability</h3>
+                            <p>Our liability is limited to the amount you paid for the service. We are not responsible for indirect damages or loss of data.</p>
+                        </section>
+                        
+                        <div class="terms-footer">
+                            <p><small>Last updated: January 2024</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+    }
+
+    closeModal(modal) {
+        if (modal && modal.parentNode) {
+            modal.remove();
+        }
+    }
+
+    showMessage(message, type = 'info') {
+        if (window.voiceMorphApp && window.voiceMorphApp.showMessage) {
+            window.voiceMorphApp.showMessage(message, type);
+        } else {
+            // Fallback notification
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+    }
+}
+
+// Initialize navigation manager
+window.navigationManager = new NavigationManager();
+
+// Handle registration completion for plan selection
+window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('languageChanged', () => {
+        // Re-initialize navigation after language change
+        if (window.navigationManager) {
+            window.navigationManager.setupSmoothScrolling();
+        }
+    });
+});
