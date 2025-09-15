@@ -237,6 +237,11 @@ class VoiceMorphApp {
     }
 
     async startRecording() {
+        // Check if user is logged in and has purchased
+        if (!this.checkUserAccess()) {
+            return;
+        }
+        
         try {
             await this.audioManager.startRecording();
             this.updateRecordingUI(true);
@@ -260,6 +265,12 @@ class VoiceMorphApp {
     }
 
     async handleFileUpload(event) {
+        // Check if user is logged in and has purchased
+        if (!this.checkUserAccess()) {
+            event.target.value = ''; // Reset file input
+            return;
+        }
+        
         const file = event.target.files[0];
         if (!file) return;
 
@@ -304,6 +315,11 @@ class VoiceMorphApp {
     }
 
     async processAudio() {
+        // Check if user is logged in and has purchased
+        if (!this.checkUserAccess()) {
+            return;
+        }
+        
         if (!this.audioManager.recordedBlob) {
             this.showError('Please record or upload audio first');
             return;
@@ -730,6 +746,154 @@ class VoiceMorphApp {
                 }
             }, 300);
         }, 3000);
+    }
+
+    checkUserAccess() {
+        // Check if user is logged in
+        if (!window.authManager || !window.authManager.isAuthenticated) {
+            this.showLoginPrompt();
+            return false;
+        }
+        
+        // Check if user has purchased the premium features
+        if (!window.authManager.user || !window.authManager.user.hasPurchased) {
+            this.showPurchasePrompt();
+            return false;
+        }
+        
+        return true;
+    }
+
+    showLoginPrompt() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 data-i18n="auth.login_required">Login Required</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p data-i18n="auth.login_to_use">Please login to use voice recording and transformation features.</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="window.authManager.showAuthModal(); this.closest('.modal-overlay').remove();">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span data-i18n="auth.login">Login</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove();">
+                            <span data-i18n="common.cancel">Cancel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        if (window.i18n) {
+            window.i18n.updateDOM();
+        }
+    }
+
+    showPurchasePrompt() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 data-i18n="purchase.title">Upgrade to Premium</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="purchase-content">
+                        <div class="purchase-features">
+                            <h3 data-i18n="purchase.features">Premium Features</h3>
+                            <ul>
+                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.voice_recording">Voice Recording</span></li>
+                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.audio_upload">Audio File Upload</span></li>
+                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.voice_effects">10+ Voice Effects</span></li>
+                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.unlimited_use">Unlimited Usage</span></li>
+                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.priority_support">Priority Support</span></li>
+                            </ul>
+                        </div>
+                        <div class="purchase-pricing">
+                            <div class="price-card">
+                                <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
+                                <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
+                                <button class="btn btn-primary" onclick="window.app.purchasePlan('monthly'); this.closest('.modal-overlay').remove();">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span data-i18n="purchase.subscribe">Subscribe</span>
+                                </button>
+                            </div>
+                            <div class="price-card featured">
+                                <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
+                                <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
+                                <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
+                                <button class="btn btn-primary" onclick="window.app.purchasePlan('yearly'); this.closest('.modal-overlay').remove();">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span data-i18n="purchase.subscribe">Subscribe</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove();">
+                            <span data-i18n="common.cancel">Cancel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        if (window.i18n) {
+            window.i18n.updateDOM();
+        }
+    }
+
+    async purchasePlan(planType) {
+        try {
+            // Simulate purchase process
+            this.showMessage('Processing purchase...');
+            
+            // In a real app, you would integrate with a payment processor like Stripe
+            const response = await fetch('/api/purchase', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.authManager.getToken()}`
+                },
+                body: JSON.stringify({ planType })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                window.authManager.user.hasPurchased = true;
+                this.showMessage('Purchase successful! You can now use all premium features.');
+            } else {
+                throw new Error('Purchase failed');
+            }
+        } catch (error) {
+            console.error('Purchase error:', error);
+            this.showError('Purchase failed. Please try again.');
+        }
     }
 
     showError(message) {

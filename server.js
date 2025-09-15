@@ -104,6 +104,69 @@ app.post('/api/auth/logout', authManager.logout.bind(authManager));
 app.get('/api/auth/profile', authManager.authenticateToken.bind(authManager), authManager.getProfile.bind(authManager));
 app.post('/api/auth/refresh', authManager.authenticateToken.bind(authManager), authManager.refreshToken.bind(authManager));
 
+// Purchase routes
+app.post('/api/purchase', authManager.authenticateToken.bind(authManager), async (req, res) => {
+    try {
+        const { planType } = req.body;
+        const userId = req.user.userId;
+        
+        if (!planType || !['monthly', 'yearly'].includes(planType)) {
+            return res.status(400).json({ error: 'Invalid plan type' });
+        }
+        
+        // In a real app, you would integrate with a payment processor like Stripe
+        // For now, we'll simulate a successful purchase
+        const purchaseData = {
+            planType,
+            price: planType === 'monthly' ? 9.99 : 99.99,
+            currency: 'USD',
+            status: 'completed',
+            purchaseDate: new Date().toISOString(),
+            expiresAt: planType === 'monthly' 
+                ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        };
+        
+        // Update user's purchase status in database
+        await database.updateUserPurchase(userId, purchaseData);
+        
+        res.json({
+            success: true,
+            message: 'Purchase completed successfully',
+            purchase: purchaseData
+        });
+        
+    } catch (error) {
+        console.error('Purchase error:', error);
+        res.status(500).json({ error: 'Purchase failed' });
+    }
+});
+
+// Check purchase status
+app.get('/api/purchase/status', authManager.authenticateToken.bind(authManager), async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const user = await database.getUserById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const hasPurchased = user.hasPurchased || false;
+        const purchaseExpired = user.purchaseExpiresAt ? new Date(user.purchaseExpiresAt) < new Date() : false;
+        
+        res.json({
+            hasPurchased: hasPurchased && !purchaseExpired,
+            purchaseExpired,
+            purchaseInfo: user.purchaseInfo ? JSON.parse(user.purchaseInfo) : null
+        });
+        
+    } catch (error) {
+        console.error('Purchase status error:', error);
+        res.status(500).json({ error: 'Failed to check purchase status' });
+    }
+});
+
 // Get available voice effects
 app.get('/api/effects', (req, res) => {
     try {

@@ -32,7 +32,10 @@ class Database {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 is_active INTEGER DEFAULT 1,
                 avatar_url TEXT,
-                display_name TEXT
+                display_name TEXT,
+                hasPurchased INTEGER DEFAULT 0,
+                purchaseExpiresAt DATETIME,
+                purchaseInfo TEXT
             )
         `;
 
@@ -144,13 +147,38 @@ class Database {
     async getUserById(id) {
         return new Promise((resolve, reject) => {
             this.db.get(
-                'SELECT id, username, email, created_at, avatar_url, display_name FROM users WHERE id = ? AND is_active = 1',
+                'SELECT id, username, email, created_at, avatar_url, display_name, hasPurchased, purchaseExpiresAt, purchaseInfo FROM users WHERE id = ? AND is_active = 1',
                 [id],
                 (err, row) => {
                     if (err) {
                         reject(err);
                     } else {
                         resolve(row);
+                    }
+                }
+            );
+        });
+    }
+
+    async updateUserPurchase(userId, purchaseData) {
+        return new Promise((resolve, reject) => {
+            const { planType, price, currency, status, purchaseDate, expiresAt } = purchaseData;
+            const purchaseInfo = JSON.stringify({
+                planType,
+                price,
+                currency,
+                status,
+                purchaseDate
+            });
+            
+            this.db.run(
+                'UPDATE users SET hasPurchased = 1, purchaseExpiresAt = ?, purchaseInfo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [expiresAt, purchaseInfo, userId],
+                function(err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ id: this.lastID, changes: this.changes });
                     }
                 }
             );
