@@ -1,6 +1,12 @@
 const ffmpeg = require('fluent-ffmpeg');
+const ffmpegStatic = require('ffmpeg-static');
+const ffprobeStatic = require('ffprobe-static');
 const path = require('path');
 const fs = require('fs');
+
+// Set FFmpeg and FFprobe paths
+ffmpeg.setFfmpegPath(ffmpegStatic);
+ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 class AudioProcessor {
     constructor() {

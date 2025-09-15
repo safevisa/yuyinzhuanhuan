@@ -29,9 +29,25 @@ npm install
 ### 3. 安装 FFmpeg
 
 #### Windows
+
+**方法一：使用 Chocolatey (推荐)**
+1. 以管理员身份打开 PowerShell
+2. 安装 Chocolatey：
+   ```powershell
+   Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+   ```
+3. 安装 FFmpeg：
+   ```cmd
+   choco install ffmpeg
+   ```
+
+**方法二：手动安装**
 1. 下载 FFmpeg: https://ffmpeg.org/download.html
 2. 解压到 `C:\ffmpeg`
-3. 将 `C:\ffmpeg\bin` 添加到系统 PATH
+3. 将 `C:\ffmpeg\bin` 添加到系统 PATH 环境变量
+
+**方法三：使用项目内置 FFmpeg (自动)**
+项目已配置使用 `ffmpeg-static` 和 `ffprobe-static`，无需手动安装 FFmpeg。
 
 #### macOS
 ```bash
@@ -302,6 +318,12 @@ pm2 start server.js --name "voice-morph"
 3. 端口是否被占用
 4. 文件权限是否正确
 5. 查看应用日志获取详细错误信息
+
+## 📖 详细部署指南
+
+- **Windows 用户**: 请参考 [Windows 部署指南](DEPLOYMENT_WINDOWS.md) 获取详细的 Windows 安装说明
+- **macOS 用户**: 参考上述 macOS 安装步骤
+- **Linux 用户**: 参考上述 Linux 安装步骤
 
 ---
 

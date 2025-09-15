@@ -93,6 +93,17 @@ class VoiceMorphApp {
             this.elements.audioFile.addEventListener('change', (e) => this.handleFileUpload(e));
         }
         
+        // Upload button click handler
+        const uploadBtn = document.querySelector('.upload-btn');
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (this.elements.audioFile) {
+                    this.elements.audioFile.click();
+                }
+            });
+        }
+        
         // Result actions
         if (this.elements.downloadBtn) {
             this.elements.downloadBtn.addEventListener('click', () => this.downloadResult());
@@ -293,8 +304,13 @@ class VoiceMorphApp {
     }
 
     async processAudio() {
-        if (!this.audioManager.recordedBlob || !this.selectedEffect) {
-            this.showError('Please record audio and select an effect');
+        if (!this.audioManager.recordedBlob) {
+            this.showError('Please record or upload audio first');
+            return;
+        }
+        
+        if (!this.selectedEffect) {
+            this.showError('Please select a voice effect');
             return;
         }
 
