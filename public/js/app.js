@@ -265,8 +265,13 @@ class VoiceMorphApp {
     }
 
     async handleFileUpload(event) {
+        console.log('File upload attempted');
+        console.log('Auth manager available:', !!window.authManager);
+        console.log('User authenticated:', window.authManager?.isAuthenticated);
+        
         // Check if user is logged in and has purchased
         if (!this.checkUserAccess()) {
+            console.log('User access denied, resetting file input');
             event.target.value = ''; // Reset file input
             return;
         }
@@ -765,16 +770,24 @@ class VoiceMorphApp {
     }
 
     showLoginPrompt() {
+        console.log('showLoginPrompt called');
+        console.log('Auth manager available:', !!window.authManager);
+        console.log('showAuthModal method available:', !!(window.authManager && window.authManager.showAuthModal));
+        
         // Directly show the auth modal instead of a prompt modal
-        if (window.authManager) {
-            window.authManager.showAuthModal();
+        if (window.authManager && window.authManager.showAuthModal) {
+            try {
+                console.log('Attempting to show auth modal');
+                window.authManager.showAuthModal();
+                console.log('Auth modal shown successfully');
+            } catch (error) {
+                console.error('Error showing auth modal:', error);
+                this.showMessage('Please login to use this feature', 'error');
+            }
         } else {
-            // Fallback: show a simple message and redirect to login
+            // Fallback: show a simple message
             this.showMessage('Please login to use this feature', 'error');
-            setTimeout(() => {
-                // You could redirect to a login page here if needed
-                console.log('Redirecting to login...');
-            }, 2000);
+            console.log('Auth manager not available, showing fallback message');
         }
     }
 
