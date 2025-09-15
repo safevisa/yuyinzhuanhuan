@@ -351,10 +351,10 @@ class NavigationManager {
                         <p>You now have access to all ${planDetails.name} features.</p>
                         
                         <div class="success-actions">
-                            <button class="success-btn primary" onclick="navigationManager.closeModal(this.closest('.modal-overlay')); navigationManager.scrollToSection('voice-recorder');">
+                            <button class="success-btn primary" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay')); window.navigationManager.scrollToSection('voice-recorder');">
                                 Start Converting Now
                             </button>
-                            <button class="success-btn secondary" onclick="window.authManager.showDashboard(); navigationManager.closeModal(this.closest('.modal-overlay'));">
+                            <button class="success-btn secondary" onclick="window.authManager.showDashboard(); window.navigationManager.closeModal(this.closest('.modal-overlay'));">
                                 View Dashboard
                             </button>
                         </div>
@@ -385,7 +385,7 @@ class NavigationManager {
             <div class="modal">
                 <div class="modal-header">
                     <h2>Contact Us</h2>
-                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -482,7 +482,7 @@ class NavigationManager {
             <div class="modal documentation-modal">
                 <div class="modal-header">
                     <h2>Documentation</h2>
-                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -545,7 +545,7 @@ class NavigationManager {
             <div class="modal">
                 <div class="modal-header">
                     <h2>Privacy Policy</h2>
-                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -600,7 +600,7 @@ class NavigationManager {
             <div class="modal">
                 <div class="modal-header">
                     <h2>Terms & Conditions</h2>
-                    <button class="modal-close" onclick="navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>

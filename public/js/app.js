@@ -581,7 +581,7 @@ class VoiceMorphApp {
             <div class="modal demo-modal">
                 <div class="modal-header">
                     <h2 data-i18n="demo.title">Voice Transformation Demo</h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                    <button class="modal-close" id="demoModalClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -657,6 +657,14 @@ class VoiceMorphApp {
         `;
         
         document.body.appendChild(modal);
+        
+        // Setup close button
+        const closeBtn = modal.querySelector('#demoModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
         
         // Close modal when clicking outside
         modal.addEventListener('click', (e) => {

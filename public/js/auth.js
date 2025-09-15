@@ -87,6 +87,15 @@ class AuthManager {
             });
         }
         
+        // Profile link
+        const profileLink = document.getElementById('profileLink');
+        if (profileLink) {
+            profileLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showProfile();
+            });
+        }
+        
         // Modal close
         if (this.elements.authModalClose) {
             this.elements.authModalClose.addEventListener('click', () => this.hideAuthModal());
@@ -435,6 +444,96 @@ class AuthManager {
         } catch (error) {
             console.error('Error showing dashboard:', error);
             this.showMessage('Failed to load dashboard', 'error');
+        }
+    }
+
+    // Profile
+    showProfile() {
+        if (!this.isAuthenticated) return;
+        
+        // Create profile modal
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.id = 'profileModal';
+        
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 data-i18n="profile.title">Personal Profile</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="profile-content">
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="profile-details">
+                                <h3>${this.user.display_name || this.user.username}</h3>
+                                <p>${this.user.email}</p>
+                                <p class="member-since">Member since ${new Date().toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-microphone"></i>
+                                <div>
+                                    <span class="stat-number">0</span>
+                                    <span class="stat-label">Recordings</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-share"></i>
+                                <div>
+                                    <span class="stat-number">0</span>
+                                    <span class="stat-label">Shared</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-download"></i>
+                                <div>
+                                    <span class="stat-number">0</span>
+                                    <span class="stat-label">Downloads</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-actions">
+                            <button class="profile-btn" onclick="authManager.showDashboard(); this.closest('.modal-overlay').remove();">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span data-i18n="profile.view_dashboard">View Dashboard</span>
+                            </button>
+                            <button class="profile-btn secondary" onclick="authManager.logout(); this.closest('.modal-overlay').remove();">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span data-i18n="profile.logout">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Hide dropdown
+        if (this.elements.userDropdown) {
+            this.elements.userDropdown.classList.remove('show');
+        }
+        
+        // Update translations if available
+        if (window.i18n) {
+            window.i18n.updateDOM();
         }
     }
 
