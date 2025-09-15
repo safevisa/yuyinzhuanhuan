@@ -765,107 +765,88 @@ class VoiceMorphApp {
     }
 
     showLoginPrompt() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.innerHTML = `
-            <div class="modal">
-                <div class="modal-header">
-                    <h2 data-i18n="auth.login_required">Login Required</h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p data-i18n="auth.login_to_use">Please login to use voice recording and transformation features.</p>
-                    <div class="modal-actions">
-                        <button class="btn btn-primary" onclick="window.authManager.showAuthModal(); this.closest('.modal-overlay').remove();">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span data-i18n="auth.login">Login</span>
-                        </button>
-                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove();">
-                            <span data-i18n="common.cancel">Cancel</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        // Close on overlay click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-        
-        if (window.i18n) {
-            window.i18n.updateDOM();
+        // Directly show the auth modal instead of a prompt modal
+        if (window.authManager) {
+            window.authManager.showAuthModal();
+        } else {
+            // Fallback: show a simple message and redirect to login
+            this.showMessage('Please login to use this feature', 'error');
+            setTimeout(() => {
+                // You could redirect to a login page here if needed
+                console.log('Redirecting to login...');
+            }, 2000);
         }
     }
 
     showPurchasePrompt() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.innerHTML = `
-            <div class="modal">
-                <div class="modal-header">
-                    <h2 data-i18n="purchase.title">Upgrade to Premium</h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="purchase-content">
-                        <div class="purchase-features">
-                            <h3 data-i18n="purchase.features">Premium Features</h3>
-                            <ul>
-                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.voice_recording">Voice Recording</span></li>
-                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.audio_upload">Audio File Upload</span></li>
-                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.voice_effects">10+ Voice Effects</span></li>
-                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.unlimited_use">Unlimited Usage</span></li>
-                                <li><i class="fas fa-check"></i> <span data-i18n="purchase.priority_support">Priority Support</span></li>
-                            </ul>
-                        </div>
-                        <div class="purchase-pricing">
-                            <div class="price-card">
-                                <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
-                                <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
-                                <button class="btn btn-primary" onclick="window.app.purchasePlan('monthly'); this.closest('.modal-overlay').remove();">
-                                    <i class="fas fa-credit-card"></i>
-                                    <span data-i18n="purchase.subscribe">Subscribe</span>
-                                </button>
-                            </div>
-                            <div class="price-card featured">
-                                <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
-                                <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
-                                <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
-                                <button class="btn btn-primary" onclick="window.app.purchasePlan('yearly'); this.closest('.modal-overlay').remove();">
-                                    <i class="fas fa-credit-card"></i>
-                                    <span data-i18n="purchase.subscribe">Subscribe</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-actions">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove();">
-                            <span data-i18n="common.cancel">Cancel</span>
+        // Show a simple message and then show purchase options
+        this.showMessage('This feature requires a premium subscription', 'info');
+        
+        // Show purchase modal after a short delay
+        setTimeout(() => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 data-i18n="purchase.title">Upgrade to Premium</h2>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
+                    <div class="modal-body">
+                        <div class="purchase-content">
+                            <div class="purchase-features">
+                                <h3 data-i18n="purchase.features">Premium Features</h3>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> <span data-i18n="purchase.voice_recording">Voice Recording</span></li>
+                                    <li><i class="fas fa-check"></i> <span data-i18n="purchase.audio_upload">Audio File Upload</span></li>
+                                    <li><i class="fas fa-check"></i> <span data-i18n="purchase.voice_effects">10+ Voice Effects</span></li>
+                                    <li><i class="fas fa-check"></i> <span data-i18n="purchase.unlimited_use">Unlimited Usage</span></li>
+                                    <li><i class="fas fa-check"></i> <span data-i18n="purchase.priority_support">Priority Support</span></li>
+                                </ul>
+                            </div>
+                            <div class="purchase-pricing">
+                                <div class="price-card">
+                                    <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
+                                    <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
+                                    <button class="btn btn-primary" onclick="window.app.purchasePlan('monthly'); this.closest('.modal-overlay').remove();">
+                                        <i class="fas fa-credit-card"></i>
+                                        <span data-i18n="purchase.subscribe">Subscribe</span>
+                                    </button>
+                                </div>
+                                <div class="price-card featured">
+                                    <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
+                                    <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
+                                    <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
+                                    <button class="btn btn-primary" onclick="window.app.purchasePlan('yearly'); this.closest('.modal-overlay').remove();">
+                                        <i class="fas fa-credit-card"></i>
+                                        <span data-i18n="purchase.subscribe">Subscribe</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove();">
+                                <span data-i18n="common.cancel">Cancel</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        // Close on overlay click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
+            `;
+            document.body.appendChild(modal);
+            
+            // Close on overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            if (window.i18n) {
+                window.i18n.updateDOM();
             }
-        });
-        
-        if (window.i18n) {
-            window.i18n.updateDOM();
-        }
+        }, 1000);
     }
 
     async purchasePlan(planType) {
