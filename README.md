@@ -20,7 +20,18 @@
 - Node.js 16+ 
 - 现代浏览器（支持Web Audio API）
 
-### 安装和运行
+### 🌐 Vercel 一键部署
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/safevisa/yuyinzhuanhuan)
+
+1. 点击上方按钮
+2. 连接您的 GitHub 账户
+3. 选择仓库并部署
+4. 等待部署完成
+
+详细部署说明请参考 [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
+
+### 本地安装和运行
 
 1. **克隆或下载项目**
    ```bash
