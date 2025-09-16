@@ -823,7 +823,7 @@ class VoiceMorphApp {
                                 <div class="price-card">
                                     <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
                                     <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
-                                    <button class="btn btn-primary" onclick="console.log('Monthly subscribe clicked'); window.voiceMorphApp.showPaymentModal('monthly');">
+                                    <button class="btn btn-primary" data-plan="monthly">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -832,7 +832,7 @@ class VoiceMorphApp {
                                     <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
                                     <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
                                     <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
-                                    <button class="btn btn-primary" onclick="console.log('Yearly subscribe clicked'); window.voiceMorphApp.showPaymentModal('yearly');">
+                                    <button class="btn btn-primary" data-plan="yearly">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -848,6 +848,24 @@ class VoiceMorphApp {
                 </div>
             `;
             document.body.appendChild(modal);
+            
+            // Add event listeners for subscribe buttons
+            const subscribeButtons = modal.querySelectorAll('[data-plan]');
+            subscribeButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const planType = button.getAttribute('data-plan');
+                    console.log('Subscribe button clicked for plan:', planType);
+                    console.log('window.voiceMorphApp:', window.voiceMorphApp);
+                    
+                    if (window.voiceMorphApp && window.voiceMorphApp.showPaymentModal) {
+                        window.voiceMorphApp.showPaymentModal(planType);
+                    } else {
+                        console.error('window.voiceMorphApp or showPaymentModal not available');
+                        alert('Payment system not available. Please refresh the page and try again.');
+                    }
+                });
+            });
             
             // Close on overlay click
             modal.addEventListener('click', (e) => {
