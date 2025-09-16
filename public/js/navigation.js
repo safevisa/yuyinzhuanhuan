@@ -482,7 +482,7 @@ class NavigationManager {
             <div class="modal documentation-modal">
                 <div class="modal-header">
                     <h2>Documentation</h2>
-                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -492,37 +492,37 @@ class NavigationManager {
                         <div class="doc-section">
                             <h3><i class="fas fa-rocket"></i> Getting Started</h3>
                             <ul>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Quick Start Guide</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">API Introduction</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Authentication</a></li>
+                                <li><a href="#">Quick Start Guide</a></li>
+                                <li><a href="#">API Introduction</a></li>
+                                <li><a href="#">Authentication</a></li>
                             </ul>
                         </div>
                         
                         <div class="doc-section">
                             <h3><i class="fas fa-code"></i> API Reference</h3>
                             <ul>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Voice Conversion API</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Voice Models</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Rate Limits</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Error Codes</a></li>
+                                <li><a href="#">Voice Conversion API</a></li>
+                                <li><a href="#">Voice Models</a></li>
+                                <li><a href="#">Rate Limits</a></li>
+                                <li><a href="#">Error Codes</a></li>
                             </ul>
                         </div>
                         
                         <div class="doc-section">
                             <h3><i class="fas fa-book"></i> Guides & Tutorials</h3>
                             <ul>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Best Practices</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Audio Quality Tips</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Troubleshooting</a></li>
+                                <li><a href="#">Best Practices</a></li>
+                                <li><a href="#">Audio Quality Tips</a></li>
+                                <li><a href="#">Troubleshooting</a></li>
                             </ul>
                         </div>
                         
                         <div class="doc-section">
                             <h3><i class="fas fa-question-circle"></i> FAQ</h3>
                             <ul>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Common Questions</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Billing & Plans</a></li>
-                                <li><a href="#" onclick="navigationManager.showMessage('Feature coming soon!', 'info')">Technical Issues</a></li>
+                                <li><a href="#">Common Questions</a></li>
+                                <li><a href="#">Billing & Plans</a></li>
+                                <li><a href="#">Technical Issues</a></li>
                             </ul>
                         </div>
                     </div>
@@ -531,6 +531,24 @@ class NavigationManager {
         `;
         
         document.body.appendChild(modal);
+        
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('.modal-close');
+        closeBtn.addEventListener('click', () => this.closeModal(modal));
+        
+        // Add event listeners for documentation links
+        const docLinks = modal.querySelectorAll('.doc-section a');
+        docLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const linkText = link.textContent.trim();
+                this.showMessage(`Opening: ${linkText}`, 'info');
+                // Here you can add actual functionality for each link
+                setTimeout(() => {
+                    this.closeModal(modal);
+                }, 1500);
+            });
+        });
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) this.closeModal(modal);
