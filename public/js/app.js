@@ -823,7 +823,7 @@ class VoiceMorphApp {
                                 <div class="price-card">
                                     <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
                                     <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
-                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.showPaymentModal('monthly');">
+                                    <button class="btn btn-primary" onclick="console.log('Monthly subscribe clicked'); window.voiceMorphApp.showPaymentModal('monthly');">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -832,7 +832,7 @@ class VoiceMorphApp {
                                     <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
                                     <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
                                     <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
-                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.showPaymentModal('yearly');">
+                                    <button class="btn btn-primary" onclick="console.log('Yearly subscribe clicked'); window.voiceMorphApp.showPaymentModal('yearly');">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -871,7 +871,9 @@ class VoiceMorphApp {
     }
 
     showPaymentModal(planType) {
-        console.log('Showing payment modal for plan:', planType);
+        console.log('showPaymentModal called with planType:', planType);
+        console.log('window.voiceMorphApp:', window.voiceMorphApp);
+        console.log('this:', this);
         
         const planInfo = {
             monthly: { name: 'Monthly Plan', price: 9.99, period: 'month' },
