@@ -231,7 +231,9 @@ class AuthManager {
                     display_name: user.display_name,
                     avatar_url: user.avatar_url,
                     hasPurchased: user.hasPurchased || false,
-                    purchaseExpiresAt: user.purchaseExpiresAt
+                    purchaseExpiresAt: user.purchaseExpiresAt,
+                    trialCount: user.trialCount || 0,
+                    maxTrials: user.maxTrials || 3
                 },
                 token
             });

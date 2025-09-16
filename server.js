@@ -171,6 +171,80 @@ app.get('/api/purchase/status', authManager.authenticateToken.bind(authManager),
     }
 });
 
+// Check trial status
+app.get('/api/trial/status', authManager.authenticateToken.bind(authManager), async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const trialInfo = await database.getTrialInfo(userId);
+        
+        if (!trialInfo) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const { trialCount, maxTrials, hasPurchased } = trialInfo;
+        const remainingTrials = Math.max(0, maxTrials - trialCount);
+        const canUseTrial = remainingTrials > 0 && !hasPurchased;
+        
+        res.json({
+            trialCount: trialCount || 0,
+            maxTrials: maxTrials || 3,
+            remainingTrials,
+            canUseTrial,
+            hasPurchased: hasPurchased || false
+        });
+        
+    } catch (error) {
+        console.error('Trial status error:', error);
+        res.status(500).json({ error: 'Failed to check trial status' });
+    }
+});
+
+// Use trial
+app.post('/api/trial/use', authManager.authenticateToken.bind(authManager), async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const trialInfo = await database.getTrialInfo(userId);
+        
+        if (!trialInfo) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const { trialCount, maxTrials, hasPurchased } = trialInfo;
+        
+        // Check if user has already purchased
+        if (hasPurchased) {
+            return res.json({
+                success: true,
+                message: 'User has purchased premium features',
+                canUse: true
+            });
+        }
+        
+        // Check if user has remaining trials
+        if (trialCount >= maxTrials) {
+            return res.status(403).json({
+                error: 'No remaining trials',
+                message: 'You have used all your free trials. Please purchase premium to continue.',
+                remainingTrials: 0
+            });
+        }
+        
+        // Increment trial count
+        await database.incrementTrialCount(userId);
+        
+        res.json({
+            success: true,
+            message: 'Trial used successfully',
+            remainingTrials: maxTrials - trialCount - 1,
+            canUse: true
+        });
+        
+    } catch (error) {
+        console.error('Trial use error:', error);
+        res.status(500).json({ error: 'Failed to use trial' });
+    }
+});
+
 // Get available voice effects
 app.get('/api/effects', (req, res) => {
     try {

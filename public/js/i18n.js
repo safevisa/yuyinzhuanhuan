@@ -67,6 +67,9 @@ class I18n {
                 'messages.login_success': "Login successful!",
                 'messages.register_success': "Registration successful!",
                 'messages.logout_success': "Logged out successfully",
+                'messages.trial_used': "Free trial used! {remaining} trials remaining.",
+                'messages.trial_limit_reached': "No remaining trials. Please purchase premium to continue.",
+                'messages.trial_check_error': "Failed to check trial status",
                 
                 // Authentication
                 'auth.login': "Login",
@@ -323,6 +326,9 @@ class I18n {
                 'messages.login_success': "登录成功！",
                 'messages.register_success': "注册成功！",
                 'messages.logout_success': "已成功退出登录",
+                'messages.trial_used': "免费试用已使用！还剩 {remaining} 次试用。",
+                'messages.trial_limit_reached': "试用次数已用完。请购买高级版以继续使用。",
+                'messages.trial_check_error': "检查试用状态失败",
                 
                 // Effect names
                 'effects.robot': "机器人声音",
@@ -457,6 +463,9 @@ class I18n {
                 'messages.login_success': "¡Inicio de sesión exitoso!",
                 'messages.register_success': "¡Registro exitoso!",
                 'messages.logout_success': "Sesión cerrada exitosamente",
+                'messages.trial_used': "¡Prueba gratuita utilizada! Quedan {remaining} pruebas.",
+                'messages.trial_limit_reached': "No quedan pruebas. Por favor compra premium para continuar.",
+                'messages.trial_check_error': "Error al verificar el estado de la prueba",
                 
                 // Effect names
                 'effects.robot': "Voz de Robot",

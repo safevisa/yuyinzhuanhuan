@@ -238,7 +238,7 @@ class VoiceMorphApp {
 
     async startRecording() {
         // Check if user is logged in and has purchased
-        if (!this.checkUserAccess()) {
+        if (!(await this.checkUserAccess())) {
             return;
         }
         
@@ -270,7 +270,7 @@ class VoiceMorphApp {
         console.log('User authenticated:', window.authManager?.isAuthenticated);
         
         // Check if user is logged in and has purchased
-        if (!this.checkUserAccess()) {
+        if (!(await this.checkUserAccess())) {
             console.log('User access denied, resetting file input');
             event.target.value = ''; // Reset file input
             return;
@@ -321,7 +321,7 @@ class VoiceMorphApp {
 
     async processAudio() {
         // Check if user is logged in and has purchased
-        if (!this.checkUserAccess()) {
+        if (!(await this.checkUserAccess())) {
             return;
         }
         
@@ -753,7 +753,7 @@ class VoiceMorphApp {
         }, 3000);
     }
 
-    checkUserAccess() {
+    async checkUserAccess() {
         // Check if user is logged in
         if (!window.authManager || !window.authManager.isAuthenticated) {
             this.showLoginPrompt();
@@ -761,12 +761,62 @@ class VoiceMorphApp {
         }
         
         // Check if user has purchased the premium features
-        if (!window.authManager.user || !window.authManager.user.hasPurchased) {
+        if (window.authManager.user && window.authManager.user.hasPurchased) {
+            return true;
+        }
+        
+        // Check trial status for non-purchased users
+        try {
+            const response = await fetch('/api/trial/status', {
+                headers: {
+                    'Authorization': `Bearer ${window.authManager.token}`
+                }
+            });
+            
+            if (response.ok) {
+                const trialData = await response.json();
+                
+                if (trialData.hasPurchased) {
+                    return true;
+                }
+                
+                if (trialData.canUseTrial) {
+                    // Use a trial
+                    const useTrialResponse = await fetch('/api/trial/use', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${window.authManager.token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (useTrialResponse.ok) {
+                        const useTrialData = await useTrialResponse.json();
+                        const message = window.i18n?.translate('messages.trial_used')?.replace('{remaining}', useTrialData.remainingTrials) || `Free trial used! ${useTrialData.remainingTrials} trials remaining.`;
+                        this.showMessage(message, 'info');
+                        return true;
+                    } else {
+                        const errorData = await useTrialResponse.json();
+                        const message = errorData.message || window.i18n?.translate('messages.trial_limit_reached') || 'Trial limit reached';
+                    this.showMessage(message, 'warning');
+                        this.showPurchasePrompt();
+                        return false;
+                    }
+                } else {
+                    const message = window.i18n?.translate('messages.trial_limit_reached') || 'No remaining trials. Please purchase premium to continue.';
+                    this.showMessage(message, 'warning');
+                    this.showPurchasePrompt();
+                    return false;
+                }
+            } else {
+                this.showPurchasePrompt();
+                return false;
+            }
+        } catch (error) {
+            console.error('Trial check error:', error);
             this.showPurchasePrompt();
             return false;
         }
-        
-        return true;
     }
 
     showLoginPrompt() {

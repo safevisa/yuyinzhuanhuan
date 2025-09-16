@@ -39,7 +39,9 @@ class Database {
                 display_name TEXT,
                 hasPurchased INTEGER DEFAULT 0,
                 purchaseExpiresAt DATETIME,
-                purchaseInfo TEXT
+                purchaseInfo TEXT,
+                trialCount INTEGER DEFAULT 0,
+                maxTrials INTEGER DEFAULT 3
             )
         `;
 
@@ -151,7 +153,7 @@ class Database {
     async getUserById(id) {
         return new Promise((resolve, reject) => {
             this.db.get(
-                'SELECT id, username, email, created_at, avatar_url, display_name, hasPurchased, purchaseExpiresAt, purchaseInfo FROM users WHERE id = ? AND is_active = 1',
+                'SELECT id, username, email, created_at, avatar_url, display_name, hasPurchased, purchaseExpiresAt, purchaseInfo, trialCount, maxTrials FROM users WHERE id = ? AND is_active = 1',
                 [id],
                 (err, row) => {
                     if (err) {
@@ -183,6 +185,38 @@ class Database {
                         reject(err);
                     } else {
                         resolve({ id: this.lastID, changes: this.changes });
+                    }
+                }
+            );
+        });
+    }
+
+    async incrementTrialCount(userId) {
+        return new Promise((resolve, reject) => {
+            this.db.run(
+                'UPDATE users SET trialCount = trialCount + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [userId],
+                function(err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ changes: this.changes });
+                    }
+                }
+            );
+        });
+    }
+
+    async getTrialInfo(userId) {
+        return new Promise((resolve, reject) => {
+            this.db.get(
+                'SELECT trialCount, maxTrials, hasPurchased FROM users WHERE id = ? AND is_active = 1',
+                [userId],
+                (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(row);
                     }
                 }
             );
