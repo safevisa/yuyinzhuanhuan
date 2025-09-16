@@ -638,19 +638,20 @@ class I18n {
 
     // Initialize i18n
     init() {
-        // Set initial language
+        // Set initial language - default to English
         const urlParams = new URLSearchParams(window.location.search);
         const urlLang = urlParams.get('lang');
         
         if (urlLang && this.translations[urlLang]) {
             this.setLanguage(urlLang);
         } else {
-            // Detect browser language
-            const browserLang = navigator.language?.split('-')[0];
-            if (browserLang && this.translations[browserLang]) {
-                this.setLanguage(browserLang);
+            // Check if user has previously selected a language
+            const savedLang = localStorage.getItem('language');
+            if (savedLang && this.translations[savedLang]) {
+                this.setLanguage(savedLang);
             } else {
-                this.updateDOM();
+                // Default to English, don't auto-detect browser language
+                this.setLanguage('en');
             }
         }
 
