@@ -32,11 +32,32 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve CSS files
+app.get('/css/style.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'css', 'style.css'));
+});
+
+// Serve JS files
+app.get('/js/:filename', (req, res) => {
+    const filename = req.params.filename;
+    res.sendFile(path.join(__dirname, 'public', 'js', filename));
+});
 
 // Basic routes for Vercel deployment
 app.get('/', (req, res) => {
+    console.log('Serving index.html from:', path.join(__dirname, 'public', 'index.html'));
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Debug route for static files
+app.get('/debug', (req, res) => {
+    res.json({
+        __dirname: __dirname,
+        publicPath: path.join(__dirname, 'public'),
+        files: require('fs').readdirSync(path.join(__dirname, 'public'))
+    });
 });
 
 // API routes (simplified for Vercel)
