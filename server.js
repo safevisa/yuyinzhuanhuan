@@ -60,10 +60,14 @@ app.use(session({
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
-// Create uploads directory if it doesn't exist
+// Create uploads directory if it doesn't exist (skip in serverless environments)
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
+if (!fs.existsSync(uploadsDir) && process.env.NODE_ENV !== 'production') {
+    try {
+        fs.mkdirSync(uploadsDir);
+    } catch (error) {
+        console.warn('Could not create uploads directory:', error.message);
+    }
 }
 
 // Configure multer for file uploads

@@ -4,9 +4,13 @@ const ffprobeStatic = require('ffprobe-static');
 const path = require('path');
 const fs = require('fs');
 
-// Set FFmpeg and FFprobe paths
-ffmpeg.setFfmpegPath(ffmpegStatic);
-ffmpeg.setFfprobePath(ffprobeStatic.path);
+// Set FFmpeg and FFprobe paths (with error handling for serverless)
+try {
+    ffmpeg.setFfmpegPath(ffmpegStatic);
+    ffmpeg.setFfprobePath(ffprobeStatic.path);
+} catch (error) {
+    console.warn('FFmpeg setup failed (serverless environment):', error.message);
+}
 
 class AudioProcessor {
     constructor() {
@@ -121,6 +125,12 @@ class AudioProcessor {
 
     async processAudio(inputPath, outputPath, effectType, options = {}) {
         return new Promise((resolve, reject) => {
+            // Check if running in serverless environment
+            if (process.env.NODE_ENV === 'production' && process.env.VERCEL) {
+                reject(new Error('Audio processing not available in serverless environment. Please use local deployment for full functionality.'));
+                return;
+            }
+            
             const effect = this.effects[effectType];
             if (!effect) {
                 reject(new Error(`Unknown effect type: ${effectType}`));

@@ -9,7 +9,11 @@ class Database {
     }
 
     init() {
-        const dbPath = path.join(__dirname, 'data.db');
+        // Use in-memory database for serverless environments
+        const dbPath = process.env.NODE_ENV === 'production' 
+            ? ':memory:' 
+            : path.join(__dirname, 'data.db');
+            
         this.db = new sqlite3.Database(dbPath, (err) => {
             if (err) {
                 console.error('Error opening database:', err);
