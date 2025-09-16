@@ -803,7 +803,7 @@ class VoiceMorphApp {
                 <div class="modal">
                     <div class="modal-header">
                         <h2 data-i18n="purchase.title">Upgrade to Premium</h2>
-                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove();">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -823,7 +823,7 @@ class VoiceMorphApp {
                                 <div class="price-card">
                                     <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
                                     <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
-                                    <button class="btn btn-primary" onclick="window.app.purchasePlan('monthly'); this.closest('.modal-overlay').remove();">
+                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.purchasePlan('monthly'); this.closest('.modal-overlay').remove();">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -832,7 +832,7 @@ class VoiceMorphApp {
                                     <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
                                     <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
                                     <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
-                                    <button class="btn btn-primary" onclick="window.app.purchasePlan('yearly'); this.closest('.modal-overlay').remove();">
+                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.purchasePlan('yearly'); this.closest('.modal-overlay').remove();">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -856,6 +856,14 @@ class VoiceMorphApp {
                 }
             });
             
+            // Add close button event listener
+            const closeBtn = modal.querySelector('.modal-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.remove();
+                });
+            }
+            
             if (window.i18n) {
                 window.i18n.updateDOM();
             }
@@ -863,6 +871,7 @@ class VoiceMorphApp {
     }
 
     async purchasePlan(planType) {
+        console.log('Purchase plan called with type:', planType);
         try {
             // Simulate purchase process
             this.showMessage('Processing purchase...');
@@ -877,11 +886,16 @@ class VoiceMorphApp {
                 body: JSON.stringify({ planType })
             });
             
+            console.log('Purchase response:', response.status);
+            
             if (response.ok) {
                 const result = await response.json();
+                console.log('Purchase result:', result);
                 window.authManager.user.hasPurchased = true;
                 this.showMessage('Purchase successful! You can now use all premium features.');
             } else {
+                const errorData = await response.json();
+                console.error('Purchase failed:', errorData);
                 throw new Error('Purchase failed');
             }
         } catch (error) {
