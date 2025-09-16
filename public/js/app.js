@@ -823,7 +823,7 @@ class VoiceMorphApp {
                                 <div class="price-card">
                                     <h4 data-i18n="purchase.monthly_plan">Monthly Plan</h4>
                                     <div class="price">$9.99<span data-i18n="purchase.per_month">/month</span></div>
-                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.purchasePlan('monthly'); this.closest('.modal-overlay').remove();">
+                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.showPaymentModal('monthly');">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -832,7 +832,7 @@ class VoiceMorphApp {
                                     <h4 data-i18n="purchase.yearly_plan">Yearly Plan</h4>
                                     <div class="price">$99.99<span data-i18n="purchase.per_year">/year</span></div>
                                     <div class="savings" data-i18n="purchase.save_20">Save 20%</div>
-                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.purchasePlan('yearly'); this.closest('.modal-overlay').remove();">
+                                    <button class="btn btn-primary" onclick="window.voiceMorphApp.showPaymentModal('yearly');">
                                         <i class="fas fa-credit-card"></i>
                                         <span data-i18n="purchase.subscribe">Subscribe</span>
                                     </button>
@@ -868,6 +868,224 @@ class VoiceMorphApp {
                 window.i18n.updateDOM();
             }
         }, 1000);
+    }
+
+    showPaymentModal(planType) {
+        console.log('Showing payment modal for plan:', planType);
+        
+        const planInfo = {
+            monthly: { name: 'Monthly Plan', price: 9.99, period: 'month' },
+            yearly: { name: 'Yearly Plan', price: 99.99, period: 'year' }
+        };
+        
+        const plan = planInfo[planType];
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal payment-modal">
+                <div class="modal-header">
+                    <h2 data-i18n="payment.title">Payment Information</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove();">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="payment-summary">
+                        <h3 data-i18n="payment.plan">Plan: ${plan.name}</h3>
+                        <div class="price-display">$${plan.price}/${plan.period}</div>
+                    </div>
+                    
+                    <form id="paymentForm" class="payment-form">
+                        <div class="form-group">
+                            <label for="cardNumber" data-i18n="payment.card_number">Card Number</label>
+                            <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expiryDate" data-i18n="payment.expiry_date">Expiry Date</label>
+                                <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cvv" data-i18n="payment.cvv">CVV</label>
+                                <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cardholderName" data-i18n="payment.cardholder_name">Cardholder Name</label>
+                            <input type="text" id="cardholderName" name="cardholderName" placeholder="John Doe" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email" data-i18n="payment.email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                        </div>
+                        
+                        <div class="payment-methods">
+                            <div class="payment-method">
+                                <input type="radio" id="visa" name="paymentMethod" value="visa" checked>
+                                <label for="visa">
+                                    <i class="fab fa-cc-visa"></i>
+                                    <span>Visa</span>
+                                </label>
+                            </div>
+                            <div class="payment-method">
+                                <input type="radio" id="mastercard" name="paymentMethod" value="mastercard">
+                                <label for="mastercard">
+                                    <i class="fab fa-cc-mastercard"></i>
+                                    <span>Mastercard</span>
+                                </label>
+                            </div>
+                            <div class="payment-method">
+                                <input type="radio" id="amex" name="paymentMethod" value="amex">
+                                <label for="amex">
+                                    <i class="fab fa-cc-amex"></i>
+                                    <span>American Express</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove();">
+                                <span data-i18n="common.cancel">Cancel</span>
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-credit-card"></i>
+                                <span data-i18n="payment.pay_now">Pay Now - $${plan.price}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        this.setupPaymentForm(modal, planType);
+        
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Add close button event listener
+        const closeBtn = modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+        
+        if (window.i18n) {
+            window.i18n.updateDOM();
+        }
+    }
+
+    setupPaymentForm(modal, planType) {
+        const form = modal.querySelector('#paymentForm');
+        const cardNumberInput = modal.querySelector('#cardNumber');
+        const expiryInput = modal.querySelector('#expiryDate');
+        
+        // Format card number with spaces
+        cardNumberInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+        
+        // Format expiry date
+        expiryInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // Handle form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.processPayment(form, planType, modal);
+        });
+    }
+
+    async processPayment(form, planType, modal) {
+        const formData = new FormData(form);
+        const paymentData = {
+            planType,
+            cardNumber: formData.get('cardNumber').replace(/\s/g, ''),
+            expiryDate: formData.get('expiryDate'),
+            cvv: formData.get('cvv'),
+            cardholderName: formData.get('cardholderName'),
+            email: formData.get('email'),
+            paymentMethod: formData.get('paymentMethod')
+        };
+        
+        console.log('Processing payment:', paymentData);
+        
+        try {
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Simulate payment processing
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // In a real app, you would send this to your payment processor
+            const response = await fetch('/api/purchase', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.authManager.getToken()}`
+                },
+                body: JSON.stringify({ 
+                    planType,
+                    paymentData: {
+                        // In production, you would never send card details to your server
+                        // Instead, use a secure payment processor like Stripe
+                        amount: paymentData.planType === 'monthly' ? 9.99 : 99.99,
+                        currency: 'USD'
+                    }
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Payment successful:', result);
+                
+                // Update user's purchase status
+                window.authManager.user.hasPurchased = true;
+                
+                // Close payment modal
+                modal.remove();
+                
+                // Show success message
+                this.showMessage('Payment successful! You can now use all premium features.', 'success');
+                
+                // Close any open purchase modals
+                const purchaseModals = document.querySelectorAll('.modal-overlay');
+                purchaseModals.forEach(modal => modal.remove());
+                
+            } else {
+                throw new Error('Payment failed');
+            }
+            
+        } catch (error) {
+            console.error('Payment error:', error);
+            this.showError('Payment failed. Please check your card details and try again.');
+            
+            // Reset button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
     }
 
     async purchasePlan(planType) {

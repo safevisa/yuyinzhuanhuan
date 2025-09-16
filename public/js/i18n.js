@@ -92,6 +92,16 @@ class I18n {
                 'purchase.per_year': "/year",
                 'purchase.save_20': "Save 20%",
                 'purchase.subscribe': "Subscribe",
+                
+                // Payment
+                'payment.title': "Payment Information",
+                'payment.plan': "Plan",
+                'payment.card_number': "Card Number",
+                'payment.expiry_date': "Expiry Date",
+                'payment.cvv': "CVV",
+                'payment.cardholder_name': "Cardholder Name",
+                'payment.email': "Email",
+                'payment.pay_now': "Pay Now",
                 'auth.confirm_password': "Confirm Password",
                 'auth.no_account': "Don't have an account?",
                 'auth.have_account': "Already have an account?",
@@ -267,6 +277,16 @@ class I18n {
                 'purchase.per_year': "/年",
                 'purchase.save_20': "节省20%",
                 'purchase.subscribe': "订阅",
+                
+                // Payment
+                'payment.title': "支付信息",
+                'payment.plan': "计划",
+                'payment.card_number': "卡号",
+                'payment.expiry_date': "有效期",
+                'payment.cvv': "CVV",
+                'payment.cardholder_name': "持卡人姓名",
+                'payment.email': "邮箱",
+                'payment.pay_now': "立即支付",
                 'auth.confirm_password': "确认密码",
                 'auth.no_account': "还没有账号？",
                 'auth.have_account': "已经有账号？",
@@ -516,6 +536,16 @@ class I18n {
                 'purchase.per_year': "/año",
                 'purchase.save_20': "Ahorra 20%",
                 'purchase.subscribe': "Suscribirse",
+                
+                // Payment
+                'payment.title': "Información de Pago",
+                'payment.plan': "Plan",
+                'payment.card_number': "Número de Tarjeta",
+                'payment.expiry_date': "Fecha de Vencimiento",
+                'payment.cvv': "CVV",
+                'payment.cardholder_name': "Nombre del Titular",
+                'payment.email': "Correo Electrónico",
+                'payment.pay_now': "Pagar Ahora",
                 
                 // CTA
                 'cta.title': "¿Listo para Transformar tu Voz?",
