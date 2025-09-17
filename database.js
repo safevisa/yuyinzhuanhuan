@@ -41,7 +41,7 @@ class Database {
                 purchaseExpiresAt DATETIME,
                 purchaseInfo TEXT,
                 trialCount INTEGER DEFAULT 0,
-                maxTrials INTEGER DEFAULT 3
+                maxTrials INTEGER DEFAULT 10
             )
         `;
 

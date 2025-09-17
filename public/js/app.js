@@ -238,7 +238,7 @@ class VoiceMorphApp {
 
     async startRecording() {
         // Check if user is logged in and has purchased
-        if (!(await this.checkUserAccess())) {
+        if (!(await this.checkUserAccess(false))) {
             return;
         }
         
@@ -270,7 +270,7 @@ class VoiceMorphApp {
         console.log('User authenticated:', window.authManager?.isAuthenticated);
         
         // Check if user is logged in and has purchased
-        if (!(await this.checkUserAccess())) {
+        if (!(await this.checkUserAccess(false))) {
             console.log('User access denied, resetting file input');
             event.target.value = ''; // Reset file input
             return;
@@ -281,7 +281,7 @@ class VoiceMorphApp {
 
         try {
             await this.audioManager.handleFileUpload(file);
-            this.onRecordingComplete();
+            await this.onRecordingComplete();
             this.showMessage('File uploaded successfully');
         } catch (error) {
             this.showError(error.message);
@@ -289,7 +289,7 @@ class VoiceMorphApp {
         }
     }
 
-    onRecordingComplete() {
+    async onRecordingComplete() {
         // Update UI state
         if (this.elements.playBtn) {
             this.elements.playBtn.disabled = false;
@@ -300,6 +300,11 @@ class VoiceMorphApp {
         if (saveSection) {
             const isLoggedIn = window.authManager && window.authManager.isLoggedIn();
             saveSection.style.display = isLoggedIn ? 'block' : 'none';
+        }
+        
+        // Check user access before showing effects
+        if (!(await this.checkUserAccess(false))) {
+            return;
         }
         
         // Show effects section
@@ -321,7 +326,7 @@ class VoiceMorphApp {
 
     async processAudio() {
         // Check if user is logged in and has purchased
-        if (!(await this.checkUserAccess())) {
+        if (!(await this.checkUserAccess(true))) {
             return;
         }
         
@@ -753,17 +758,25 @@ class VoiceMorphApp {
         }, 3000);
     }
 
-    async checkUserAccess() {
+    async checkUserAccess(useTrial = false) {
+        console.log('checkUserAccess called with useTrial:', useTrial);
+        
         // Check if user is logged in
         if (!window.authManager || !window.authManager.isAuthenticated) {
+            console.log('User not authenticated, showing login prompt');
             this.showLoginPrompt();
             return false;
         }
         
+        console.log('User is authenticated, checking purchase status');
+        
         // Check if user has purchased the premium features
         if (window.authManager.user && window.authManager.user.hasPurchased) {
+            console.log('User has purchased, allowing access');
             return true;
         }
+        
+        console.log('User has not purchased, checking trial status');
         
         // Check trial status for non-purchased users
         try {
@@ -773,42 +786,58 @@ class VoiceMorphApp {
                 }
             });
             
+            console.log('Trial status response:', response.status);
+            
             if (response.ok) {
                 const trialData = await response.json();
+                console.log('Trial data:', trialData);
                 
                 if (trialData.hasPurchased) {
+                    console.log('User has purchased (from API), allowing access');
                     return true;
                 }
                 
                 if (trialData.canUseTrial) {
-                    // Use a trial
-                    const useTrialResponse = await fetch('/api/trial/use', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${window.authManager.token}`,
-                            'Content-Type': 'application/json'
+                    console.log('User can use trial, useTrial flag:', useTrial);
+                    if (useTrial) {
+                        // Use a trial only when explicitly requested
+                        console.log('Using trial...');
+                        const useTrialResponse = await fetch('/api/trial/use', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${window.authManager.token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (useTrialResponse.ok) {
+                            const useTrialData = await useTrialResponse.json();
+                            const message = window.i18n?.translate('messages.trial_used')?.replace('{remaining}', useTrialData.remainingTrials) || `Free trial used! ${useTrialData.remainingTrials} trials remaining.`;
+                            this.showMessage(message, 'info');
+                            console.log('Trial used successfully');
+                            return true;
+                        } else {
+                            const errorData = await useTrialResponse.json();
+                            const message = errorData.message || window.i18n?.translate('messages.trial_limit_reached') || 'Trial limit reached';
+                            this.showMessage(message, 'warning');
+                            this.showPurchasePrompt();
+                            console.log('Failed to use trial');
+                            return false;
                         }
-                    });
-                    
-                    if (useTrialResponse.ok) {
-                        const useTrialData = await useTrialResponse.json();
-                        const message = window.i18n?.translate('messages.trial_used')?.replace('{remaining}', useTrialData.remainingTrials) || `Free trial used! ${useTrialData.remainingTrials} trials remaining.`;
-                        this.showMessage(message, 'info');
-                        return true;
                     } else {
-                        const errorData = await useTrialResponse.json();
-                        const message = errorData.message || window.i18n?.translate('messages.trial_limit_reached') || 'Trial limit reached';
-                    this.showMessage(message, 'warning');
-                        this.showPurchasePrompt();
-                        return false;
+                        // Just check if trial is available, don't use it yet
+                        console.log('Trial available, allowing access without using trial');
+                        return true;
                     }
                 } else {
                     const message = window.i18n?.translate('messages.trial_limit_reached') || 'No remaining trials. Please purchase premium to continue.';
                     this.showMessage(message, 'warning');
                     this.showPurchasePrompt();
+                    console.log('No trials available');
                     return false;
                 }
             } else {
+                console.log('Trial status check failed, showing purchase prompt');
                 this.showPurchasePrompt();
                 return false;
             }
