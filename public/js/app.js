@@ -47,6 +47,7 @@ class VoiceMorphApp {
             stopBtn: document.getElementById('stopBtn'),
             playBtn: document.getElementById('playBtn'),
             audioFile: document.getElementById('audioFile'),
+            uploadBtn: document.getElementById('uploadBtn'),
             recordingStatus: document.getElementById('recordingStatus'),
             
             // Sections
@@ -94,9 +95,8 @@ class VoiceMorphApp {
         }
         
         // Upload button click handler
-        const uploadBtn = document.querySelector('.upload-btn');
-        if (uploadBtn) {
-            uploadBtn.addEventListener('click', (e) => {
+        if (this.elements.uploadBtn) {
+            this.elements.uploadBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (this.elements.audioFile) {
                     this.elements.audioFile.click();
@@ -180,11 +180,41 @@ class VoiceMorphApp {
             chipmunk: 'fas fa-laugh-squint',
             deep: 'fas fa-volume-down',
             echo: 'fas fa-broadcast-tower',
-            reverse: 'fas fa-backward'
+            reverse: 'fas fa-backward',
+            custom: 'fas fa-user-cog'
         };
 
         this.elements.effectsGrid.innerHTML = '';
         
+        // Add custom voice profile option first
+        const customCard = document.createElement('div');
+        customCard.className = 'effect-card custom-voice-card';
+        customCard.setAttribute('data-effect', 'custom');
+        
+        customCard.innerHTML = `
+            <div class="effect-icon">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <div class="effect-name">Custom Voice Profile</div>
+            <div class="effect-description">Upload a sample to create your own voice profile</div>
+            <div class="custom-upload" style="display: none;">
+                <input type="file" id="customVoiceFile" accept="audio/*" style="display: none;">
+                <button class="upload-sample-btn" onclick="document.getElementById('customVoiceFile').click()">
+                    <i class="fas fa-upload"></i> Upload Sample
+                </button>
+            </div>
+        `;
+        
+        customCard.addEventListener('click', (e) => {
+            if (e.target.closest('.upload-sample-btn') || e.target.closest('#customVoiceFile')) {
+                return; // Don't select effect when clicking upload button
+            }
+            this.selectEffect('custom');
+        });
+        
+        this.elements.effectsGrid.appendChild(customCard);
+        
+        // Add regular effects
         Object.keys(this.availableEffects).forEach(effectKey => {
             const effect = this.availableEffects[effectKey];
             const effectCard = document.createElement('div');
@@ -202,6 +232,71 @@ class VoiceMorphApp {
             effectCard.addEventListener('click', () => this.selectEffect(effectKey));
             this.elements.effectsGrid.appendChild(effectCard);
         });
+        
+        // Setup custom voice file upload
+        this.setupCustomVoiceUpload();
+    }
+
+    setupCustomVoiceUpload() {
+        const customVoiceFile = document.getElementById('customVoiceFile');
+        if (customVoiceFile) {
+            customVoiceFile.addEventListener('change', (e) => {
+                this.handleCustomVoiceUpload(e);
+            });
+        }
+    }
+
+    async handleCustomVoiceUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/webm'];
+        if (!allowedTypes.includes(file.type)) {
+            this.showError('Please upload a valid audio file (WAV, MP3, or WEBM)');
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            this.showError('File size must be less than 10MB');
+            return;
+        }
+
+        try {
+            this.showMessage('Uploading custom voice sample...', 'info');
+            
+            // Upload custom voice sample
+            const formData = new FormData();
+            formData.append('voiceSample', file);
+            
+            const response = await fetch('/api/custom-voice/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${window.authManager.token}`
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showMessage('Custom voice profile created successfully!', 'success');
+                
+                // Update the custom voice effect with the new profile
+                this.customVoiceProfile = result.profileId;
+                
+                // Auto-process if we have recorded audio
+                if (this.audioManager.recordedBlob) {
+                    setTimeout(() => this.processAudio(), 500);
+                }
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to upload custom voice sample');
+            }
+        } catch (error) {
+            console.error('Custom voice upload error:', error);
+            this.showError(error.message);
+        }
     }
 
     selectEffect(effectKey) {
@@ -217,8 +312,22 @@ class VoiceMorphApp {
             effectCard.classList.add('selected');
             this.selectedEffect = effectKey;
             
-            // Auto-process if we have recorded audio
-            if (this.audioManager.recordedBlob) {
+            // Show custom upload section if custom voice is selected
+            if (effectKey === 'custom') {
+                const customUpload = effectCard.querySelector('.custom-upload');
+                if (customUpload) {
+                    customUpload.style.display = 'block';
+                }
+            } else {
+                // Hide custom upload sections for other effects
+                const allCustomUploads = this.elements.effectsGrid.querySelectorAll('.custom-upload');
+                allCustomUploads.forEach(upload => {
+                    upload.style.display = 'none';
+                });
+            }
+            
+            // Auto-process if we have recorded audio and it's not custom voice
+            if (this.audioManager.recordedBlob && effectKey !== 'custom') {
                 setTimeout(() => this.processAudio(), 500);
             }
         }
@@ -349,6 +458,11 @@ class VoiceMorphApp {
             
             const formData = this.audioManager.getRecordedAudioFormData();
             formData.append('effect', this.selectedEffect);
+            
+            // Add custom voice profile if selected
+            if (this.selectedEffect === 'custom' && this.customVoiceProfile) {
+                formData.append('customVoiceProfile', this.customVoiceProfile);
+            }
             
             // Add title if user is logged in
             const titleInput = document.getElementById('recordingTitle');
@@ -636,11 +750,12 @@ class VoiceMorphApp {
                             <div class="demo-sample">
                                 <h4><i class="fas fa-microphone"></i> Original Voice</h4>
                                 <div class="demo-player">
-                                    <button class="demo-play-btn" onclick="this.nextElementSibling.play()">
+                                    <button class="demo-play-btn" data-audio="original">
                                         <i class="fas fa-play"></i> Play Original
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAECAD0SAAA+EgAAAgAQAGRhdGE" type="audio/wav">
+                                        <source src="/demo/original.wav" type="audio/wav">
+                                        <source src="/demo/original.mp3" type="audio/mp3">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -649,11 +764,12 @@ class VoiceMorphApp {
                             <div class="demo-sample">
                                 <h4><i class="fas fa-robot"></i> Robot Voice</h4>
                                 <div class="demo-player">
-                                    <button class="demo-play-btn" onclick="this.nextElementSibling.play()">
+                                    <button class="demo-play-btn" data-audio="robot">
                                         <i class="fas fa-play"></i> Play Robot
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAECAD0SAAA+EgAAAgAQAGRhdGE" type="audio/wav">
+                                        <source src="/demo/robot.wav" type="audio/wav">
+                                        <source src="/demo/robot.mp3" type="audio/mp3">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -662,11 +778,12 @@ class VoiceMorphApp {
                             <div class="demo-sample">
                                 <h4><i class="fas fa-laugh-squint"></i> Chipmunk Voice</h4>
                                 <div class="demo-player">
-                                    <button class="demo-play-btn" onclick="this.nextElementSibling.play()">
+                                    <button class="demo-play-btn" data-audio="chipmunk">
                                         <i class="fas fa-play"></i> Play Chipmunk
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAECAD0SAAA+EgAAAgAQAGRhdGE" type="audio/wav">
+                                        <source src="/demo/chipmunk.wav" type="audio/wav">
+                                        <source src="/demo/chipmunk.mp3" type="audio/mp3">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -675,11 +792,12 @@ class VoiceMorphApp {
                             <div class="demo-sample">
                                 <h4><i class="fas fa-volume-down"></i> Deep Voice</h4>
                                 <div class="demo-player">
-                                    <button class="demo-play-btn" onclick="this.nextElementSibling.play()">
+                                    <button class="demo-play-btn" data-audio="deep">
                                         <i class="fas fa-play"></i> Play Deep Voice
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAECAD0SAAA+EgAAAgAQAGRhdGE" type="audio/wav">
+                                        <source src="/demo/deep.wav" type="audio/wav">
+                                        <source src="/demo/deep.mp3" type="audio/mp3">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -688,7 +806,7 @@ class VoiceMorphApp {
                         
                         <div class="demo-cta">
                             <p data-i18n="demo.try_now">Ready to transform your own voice?</p>
-                            <button class="demo-start-btn" onclick="this.closest('.modal-overlay').remove(); window.voiceMorphApp.scrollToRecorder();">
+                            <button class="demo-start-btn" id="demoStartRecording">
                                 <i class="fas fa-microphone"></i>
                                 <span data-i18n="demo.start_recording">Start Recording Now</span>
                             </button>
@@ -705,6 +823,26 @@ class VoiceMorphApp {
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 modal.remove();
+            });
+        }
+        
+        // Setup play buttons
+        const playButtons = modal.querySelectorAll('.demo-play-btn');
+        playButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const audio = button.parentElement.querySelector('audio');
+                if (audio) {
+                    audio.play().catch(e => console.error('Error playing audio:', e));
+                }
+            });
+        });
+        
+        // Setup start recording button
+        const startRecordingBtn = modal.querySelector('#demoStartRecording');
+        if (startRecordingBtn) {
+            startRecordingBtn.addEventListener('click', () => {
+                modal.remove();
+                this.scrollToRecorder();
             });
         }
         
@@ -794,6 +932,8 @@ class VoiceMorphApp {
                 
                 if (trialData.hasPurchased) {
                     console.log('User has purchased (from API), allowing access');
+                    // Update local user data
+                    window.authManager.user.hasPurchased = true;
                     return true;
                 }
                 

@@ -421,34 +421,12 @@ class AuthManager {
     async showDashboard() {
         if (!this.isAuthenticated) return;
         
-        try {
-            // Hide other sections
-            const sections = ['effectsSection', 'processingSection', 'resultsSection'];
-            sections.forEach(sectionId => {
-                const section = document.getElementById(sectionId);
-                if (section) section.style.display = 'none';
-            });
-            
-            // Show dashboard
-            if (this.elements.dashboardSection) {
-                this.elements.dashboardSection.style.display = 'block';
-            }
-            
-            // Load recordings
-            await this.loadUserRecordings();
-            
-            // Hide dropdown
-            if (this.elements.userDropdown) {
-                this.elements.userDropdown.classList.remove('show');
-            }
-        } catch (error) {
-            console.error('Error showing dashboard:', error);
-            this.showMessage('Failed to load dashboard', 'error');
-        }
+        // Show profile modal instead of dashboard section
+        this.showProfile();
     }
 
     // Profile
-    showProfile() {
+    async showProfile() {
         if (!this.isAuthenticated) return;
         
         // Create profile modal
@@ -456,11 +434,33 @@ class AuthManager {
         modal.className = 'modal-overlay';
         modal.id = 'profileModal';
         
+        // Load user statistics
+        let stats = { recordings: 0, shared: 0, downloads: 0 };
+        try {
+            const response = await fetch('/api/recordings', {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                stats.recordings = result.recordings ? result.recordings.length : 0;
+                // Calculate shared and downloads from recordings
+                if (result.recordings) {
+                    stats.shared = result.recordings.filter(r => r.share_token).length;
+                    stats.downloads = result.recordings.reduce((sum, r) => sum + (r.download_count || 0), 0);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading profile stats:', error);
+        }
+        
         modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2 data-i18n="profile.title">Personal Profile</h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                    <button class="modal-close" id="profileModalClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -482,32 +482,40 @@ class AuthManager {
                             <div class="stat-item">
                                 <i class="fas fa-microphone"></i>
                                 <div>
-                                    <span class="stat-number">0</span>
+                                    <span class="stat-number">${stats.recordings}</span>
                                     <span class="stat-label">Recordings</span>
                                 </div>
                             </div>
                             <div class="stat-item">
                                 <i class="fas fa-share"></i>
                                 <div>
-                                    <span class="stat-number">0</span>
+                                    <span class="stat-number">${stats.shared}</span>
                                     <span class="stat-label">Shared</span>
                                 </div>
                             </div>
                             <div class="stat-item">
                                 <i class="fas fa-download"></i>
                                 <div>
-                                    <span class="stat-number">0</span>
+                                    <span class="stat-number">${stats.downloads}</span>
                                     <span class="stat-label">Downloads</span>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="profile-actions">
-                            <button class="profile-btn" onclick="authManager.showDashboard(); this.closest('.modal-overlay').remove();">
+                            <button class="profile-btn" id="profileViewDashboard">
                                 <i class="fas fa-tachometer-alt"></i>
                                 <span data-i18n="profile.view_dashboard">View Dashboard</span>
                             </button>
-                            <button class="profile-btn secondary" onclick="authManager.logout(); this.closest('.modal-overlay').remove();">
+                            <button class="profile-btn" id="profileEditProfile">
+                                <i class="fas fa-edit"></i>
+                                <span data-i18n="profile.edit_profile">Edit Profile</span>
+                            </button>
+                            <button class="profile-btn" id="profileWorkspace">
+                                <i class="fas fa-briefcase"></i>
+                                <span data-i18n="profile.workspace">My Workspace</span>
+                            </button>
+                            <button class="profile-btn secondary" id="profileLogout">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span data-i18n="profile.logout">Logout</span>
                             </button>
@@ -518,6 +526,47 @@ class AuthManager {
         `;
         
         document.body.appendChild(modal);
+        
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('#profileModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+        
+        // Add event listeners for action buttons
+        const viewDashboardBtn = modal.querySelector('#profileViewDashboard');
+        if (viewDashboardBtn) {
+            viewDashboardBtn.addEventListener('click', () => {
+                this.showDashboard();
+                modal.remove();
+            });
+        }
+        
+        const editProfileBtn = modal.querySelector('#profileEditProfile');
+        if (editProfileBtn) {
+            editProfileBtn.addEventListener('click', () => {
+                this.showEditProfile();
+                modal.remove();
+            });
+        }
+        
+        const workspaceBtn = modal.querySelector('#profileWorkspace');
+        if (workspaceBtn) {
+            workspaceBtn.addEventListener('click', () => {
+                this.showWorkspace();
+                modal.remove();
+            });
+        }
+        
+        const logoutBtn = modal.querySelector('#profileLogout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                this.logout();
+                modal.remove();
+            });
+        }
         
         // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
@@ -925,6 +974,304 @@ class AuthManager {
         }
         
         return suggestion;
+    }
+
+    showEditProfile() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.id = 'editProfileModal';
+        
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Edit Profile</h2>
+                    <button class="modal-close" id="editProfileModalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <form id="editProfileForm" class="profile-form">
+                        <div class="form-group">
+                            <label for="editDisplayName">Display Name</label>
+                            <input type="text" id="editDisplayName" value="${this.user.display_name || this.user.username}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editEmail">Email</label>
+                            <input type="email" id="editEmail" value="${this.user.email}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editBio">Bio</label>
+                            <textarea id="editBio" rows="3" placeholder="Tell us about yourself...">${this.user.bio || ''}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editAvatar">Avatar</label>
+                            <input type="file" id="editAvatar" accept="image/*">
+                            <div class="avatar-preview">
+                                <img src="${this.user.avatar || '/assets/default-avatar.png'}" alt="Avatar Preview" id="avatarPreview">
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn secondary" id="cancelEditProfile">Cancel</button>
+                            <button type="submit" class="btn primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        const closeBtn = modal.querySelector('#editProfileModalClose');
+        const cancelBtn = modal.querySelector('#cancelEditProfile');
+        const form = modal.querySelector('#editProfileForm');
+        const avatarInput = modal.querySelector('#editAvatar');
+        const avatarPreview = modal.querySelector('#avatarPreview');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => modal.remove());
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => modal.remove());
+        }
+        
+        if (avatarInput) {
+            avatarInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        avatarPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                formData.append('display_name', document.getElementById('editDisplayName').value);
+                formData.append('email', document.getElementById('editEmail').value);
+                formData.append('bio', document.getElementById('editBio').value);
+                
+                if (avatarInput.files[0]) {
+                    formData.append('avatar', avatarInput.files[0]);
+                }
+                
+                try {
+                    const response = await fetch('/api/profile/update', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.user = { ...this.user, ...result.user };
+                        this.showMessage('Profile updated successfully!', 'success');
+                        modal.remove();
+                        this.updateUserInterface();
+                    } else {
+                        this.showMessage('Failed to update profile. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    this.showMessage('An error occurred. Please try again.', 'error');
+                }
+            });
+        }
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    }
+
+    showWorkspace() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.id = 'workspaceModal';
+        
+        modal.innerHTML = `
+            <div class="modal workspace-modal">
+                <div class="modal-header">
+                    <h2>My Workspace</h2>
+                    <button class="modal-close" id="workspaceModalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="workspace-content">
+                        <div class="workspace-tabs">
+                            <button class="tab-btn active" data-tab="recordings">My Recordings</button>
+                            <button class="tab-btn" data-tab="projects">Projects</button>
+                            <button class="tab-btn" data-tab="settings">Settings</button>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div class="tab-panel active" id="recordings-tab">
+                                <div class="recordings-list" id="workspaceRecordings">
+                                    <div class="loading">Loading recordings...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-panel" id="projects-tab">
+                                <div class="projects-list">
+                                    <div class="project-item">
+                                        <h4>Voice Collection #1</h4>
+                                        <p>Collection of robot voice transformations</p>
+                                        <div class="project-actions">
+                                            <button class="btn small">Edit</button>
+                                            <button class="btn small secondary">Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-panel" id="settings-tab">
+                                <div class="settings-content">
+                                    <h3>Workspace Settings</h3>
+                                    <div class="setting-item">
+                                        <label>
+                                            <input type="checkbox" checked>
+                                            Auto-save recordings
+                                        </label>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>
+                                            <input type="checkbox">
+                                            Email notifications
+                                        </label>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>
+                                            <input type="checkbox" checked>
+                                            Share by default
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        const closeBtn = modal.querySelector('#workspaceModalClose');
+        const tabBtns = modal.querySelectorAll('.tab-btn');
+        const tabPanels = modal.querySelectorAll('.tab-panel');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => modal.remove());
+        }
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                // Update active tab
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update active panel
+                tabPanels.forEach(p => p.classList.remove('active'));
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+                
+                // Load content if needed
+                if (tabId === 'recordings') {
+                    this.loadWorkspaceRecordings();
+                }
+            });
+        });
+        
+        // Load initial content
+        this.loadWorkspaceRecordings();
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    }
+
+    async loadWorkspaceRecordings() {
+        const recordingsContainer = document.getElementById('workspaceRecordings');
+        if (!recordingsContainer) return;
+        
+        try {
+            const response = await fetch('/api/recordings', {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                const recordings = result.recordings || [];
+                
+                if (recordings.length === 0) {
+                    recordingsContainer.innerHTML = '<div class="empty-state">No recordings yet. Start creating some!</div>';
+                } else {
+                    recordingsContainer.innerHTML = recordings.map(recording => `
+                        <div class="recording-item">
+                            <div class="recording-info">
+                                <h4>${recording.original_filename || 'Recording'}</h4>
+                                <p>Effect: ${recording.effect || 'Unknown'}</p>
+                                <p>Created: ${new Date(recording.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <div class="recording-actions">
+                                <button class="btn small" onclick="this.playRecording('${recording.id}')">Play</button>
+                                <button class="btn small secondary" onclick="this.downloadRecording('${recording.id}')">Download</button>
+                                <button class="btn small danger" onclick="this.deleteRecording('${recording.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } else {
+                recordingsContainer.innerHTML = '<div class="error-state">Failed to load recordings</div>';
+            }
+        } catch (error) {
+            console.error('Error loading workspace recordings:', error);
+            recordingsContainer.innerHTML = '<div class="error-state">Error loading recordings</div>';
+        }
+    }
+
+    showMessage(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 3000);
     }
 }
 

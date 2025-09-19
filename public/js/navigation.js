@@ -55,6 +55,27 @@ class NavigationManager {
                 e.preventDefault();
                 this.showTermsModal();
             }
+            
+            if (e.target.matches('[data-i18n="footer.refund"]') || linkText.includes('Refund') || linkText.includes('退款')) {
+                e.preventDefault();
+                this.showRefundModal();
+            }
+            
+            // Handle product menu links
+            if (e.target.matches('[data-i18n="footer.voice_conversion"]') || linkText.includes('Voice Conversion') || linkText.includes('语音转换')) {
+                e.preventDefault();
+                this.scrollToSection('voice-recorder');
+            }
+            
+            if (e.target.matches('[data-i18n="footer.api_access"]') || linkText.includes('API Access') || linkText.includes('API访问')) {
+                e.preventDefault();
+                this.showApiAccessModal();
+            }
+            
+            if (e.target.matches('[data-i18n="footer.pricing"]') || linkText.includes('Pricing') || linkText.includes('定价')) {
+                e.preventDefault();
+                this.scrollToSection('pricing');
+            }
         });
     }
 
@@ -71,6 +92,12 @@ class NavigationManager {
     }
 
     scrollToSection(sectionId) {
+        // Validate sectionId
+        if (!sectionId || sectionId.trim() === '' || sectionId === '.') {
+            console.warn('Invalid sectionId provided to scrollToSection:', sectionId);
+            return;
+        }
+        
         let targetElement;
         
         switch(sectionId) {
@@ -95,7 +122,14 @@ class NavigationManager {
                 this.showContactModal();
                 return;
             default:
-                targetElement = document.getElementById(sectionId) || document.querySelector(`.${sectionId}`);
+                // First try to find by ID
+                targetElement = document.getElementById(sectionId);
+                // If not found by ID and sectionId doesn't start with a dot, try class selector
+                if (!targetElement && !sectionId.startsWith('.')) {
+                    targetElement = document.querySelector(`.${sectionId}`);
+                } else if (!targetElement && sectionId.startsWith('.')) {
+                    targetElement = document.querySelector(sectionId);
+                }
         }
 
         if (targetElement) {
@@ -351,10 +385,10 @@ class NavigationManager {
                         <p>You now have access to all ${planDetails.name} features.</p>
                         
                         <div class="success-actions">
-                            <button class="success-btn primary" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay')); window.navigationManager.scrollToSection('voice-recorder');">
+                            <button class="success-btn primary" id="successStartConverting">
                                 Start Converting Now
                             </button>
-                            <button class="success-btn secondary" onclick="window.authManager.showDashboard(); window.navigationManager.closeModal(this.closest('.modal-overlay'));">
+                            <button class="success-btn secondary" id="successViewDashboard">
                                 View Dashboard
                             </button>
                         </div>
@@ -364,6 +398,25 @@ class NavigationManager {
         `;
         
         document.body.appendChild(modal);
+        
+        // Add event listeners for buttons
+        const startConvertingBtn = modal.querySelector('#successStartConverting');
+        if (startConvertingBtn) {
+            startConvertingBtn.addEventListener('click', () => {
+                this.closeModal(modal);
+                this.scrollToSection('voice-recorder');
+            });
+        }
+        
+        const viewDashboardBtn = modal.querySelector('#successViewDashboard');
+        if (viewDashboardBtn) {
+            viewDashboardBtn.addEventListener('click', () => {
+                if (window.authManager) {
+                    window.authManager.showDashboard();
+                }
+                this.closeModal(modal);
+            });
+        }
         
         // Auto close after 10 seconds
         setTimeout(() => {
@@ -380,12 +433,13 @@ class NavigationManager {
     showContactModal() {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
+        modal.id = 'contactModal';
         
         modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2>Contact Us</h2>
-                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" id="contactModalClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -396,7 +450,7 @@ class NavigationManager {
                             <i class="fas fa-envelope"></i>
                             <div>
                                 <h4>Email Support</h4>
-                                <a href="mailto:support@voicemorph.com">support@voicemorph.com</a>
+                                <a href="mailto:support@voicecworkshop.com">support@voicecworkshop.com</a>
                             </div>
                         </div>
                         
@@ -461,6 +515,12 @@ class NavigationManager {
         
         document.body.appendChild(modal);
         
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('#contactModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+        
         modal.addEventListener('click', (e) => {
             if (e.target === modal) this.closeModal(modal);
         });
@@ -482,7 +542,7 @@ class NavigationManager {
             <div class="modal documentation-modal">
                 <div class="modal-header">
                     <h2>Documentation</h2>
-                    <button class="modal-close">
+                    <button class="modal-close" id="docModalClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -533,8 +593,10 @@ class NavigationManager {
         document.body.appendChild(modal);
         
         // Add event listener for close button
-        const closeBtn = modal.querySelector('.modal-close');
-        closeBtn.addEventListener('click', () => this.closeModal(modal));
+        const closeBtn = modal.querySelector('#docModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal(modal));
+        }
         
         // Add event listeners for documentation links
         const docLinks = modal.querySelectorAll('.doc-section a');
@@ -558,12 +620,13 @@ class NavigationManager {
     showPrivacyModal() {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
+        modal.id = 'privacyModal';
         
         modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2>Privacy Policy</h2>
-                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" id="privacyModalClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -592,7 +655,7 @@ class NavigationManager {
                         
                         <section>
                             <h3>Contact</h3>
-                            <p>For privacy concerns or data deletion requests, contact us at privacy@voicemorph.com</p>
+                            <p>For privacy concerns or data deletion requests, contact us at privacy@voicecworkshop.com</p>
                         </section>
                         
                         <div class="policy-footer">
@@ -604,6 +667,12 @@ class NavigationManager {
         `;
         
         document.body.appendChild(modal);
+        
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('#privacyModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal(modal));
+        }
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) this.closeModal(modal);
@@ -618,7 +687,7 @@ class NavigationManager {
             <div class="modal">
                 <div class="modal-header">
                     <h2>Terms & Conditions</h2>
-                    <button class="modal-close" onclick="window.navigationManager.closeModal(this.closest('.modal-overlay'))">
+                    <button class="modal-close" id="termsModalClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -664,6 +733,217 @@ class NavigationManager {
         `;
         
         document.body.appendChild(modal);
+        
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('#termsModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+    }
+
+    showRefundModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Return & Refund Policy</h2>
+                    <button class="modal-close" id="refundModalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="refund-content">
+                        <section>
+                            <h3>Refund Eligibility</h3>
+                            <p>We offer a 30-day money-back guarantee for all premium subscriptions. If you're not satisfied with our service, you can request a full refund within 30 days of your initial purchase.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>How to Request a Refund</h3>
+                            <ol>
+                                <li>Contact our support team at support@voicecworkshop.com</li>
+                                <li>Include your order number and reason for the refund</li>
+                                <li>We'll process your refund within 5-7 business days</li>
+                            </ol>
+                        </section>
+                        
+                        <section>
+                            <h3>Refund Processing</h3>
+                            <p>Refunds will be issued to the original payment method used for the purchase. Processing time may vary depending on your bank or payment provider.</p>
+                        </section>
+                        
+                        <section>
+                            <h3>Non-Refundable Items</h3>
+                            <ul>
+                                <li>Refunds requested after 30 days</li>
+                                <li>Usage-based charges (per-conversion fees)</li>
+                                <li>Custom voice training services</li>
+                                <li>Enterprise custom integrations</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h3>Contact Information</h3>
+                            <p>For refund requests or questions about this policy, please contact us at:</p>
+                            <p><strong>Email:</strong> support@voicecworkshop.com</p>
+                            <p><strong>Response Time:</strong> Within 24 hours during business days</p>
+                        </section>
+                        
+                        <div class="refund-footer">
+                            <p><small>Last updated: January 2024</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('#refundModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+    }
+
+    showApiAccessModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        
+        modal.innerHTML = `
+            <div class="modal api-modal">
+                <div class="modal-header">
+                    <h2>API Access</h2>
+                    <button class="modal-close" id="apiModalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="api-content">
+                        <div class="api-intro">
+                            <h3><i class="fas fa-code"></i> VoiceMorph API</h3>
+                            <p>Integrate our powerful voice transformation technology into your applications with our RESTful API.</p>
+                        </div>
+                        
+                        <div class="api-features">
+                            <div class="feature-item">
+                                <i class="fas fa-rocket"></i>
+                                <div>
+                                    <h4>Easy Integration</h4>
+                                    <p>Simple REST API with comprehensive documentation</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <div>
+                                    <h4>Secure & Reliable</h4>
+                                    <p>Enterprise-grade security with 99.9% uptime</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <div>
+                                    <h4>High Performance</h4>
+                                    <p>Fast processing with real-time response</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-endpoints">
+                            <h3>API Endpoints</h3>
+                            <div class="endpoint-list">
+                                <div class="endpoint-item">
+                                    <span class="method post">POST</span>
+                                    <span class="url">/api/v1/transform</span>
+                                    <span class="description">Transform voice audio</span>
+                                </div>
+                                
+                                <div class="endpoint-item">
+                                    <span class="method get">GET</span>
+                                    <span class="url">/api/v1/effects</span>
+                                    <span class="description">Get available voice effects</span>
+                                </div>
+                                
+                                <div class="endpoint-item">
+                                    <span class="method get">GET</span>
+                                    <span class="url">/api/v1/status</span>
+                                    <span class="description">Check API status</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-pricing">
+                            <h3>API Pricing</h3>
+                            <div class="pricing-tiers">
+                                <div class="tier">
+                                    <h4>Starter</h4>
+                                    <div class="price">$0.10 <span>per request</span></div>
+                                    <ul>
+                                        <li>1,000 requests/month</li>
+                                        <li>Basic support</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="tier featured">
+                                    <h4>Professional</h4>
+                                    <div class="price">$0.05 <span>per request</span></div>
+                                    <ul>
+                                        <li>10,000 requests/month</li>
+                                        <li>Priority support</li>
+                                        <li>Custom voice models</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="tier">
+                                    <h4>Enterprise</h4>
+                                    <div class="price">Custom</div>
+                                    <ul>
+                                        <li>Unlimited requests</li>
+                                        <li>Dedicated support</li>
+                                        <li>Custom integrations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-actions">
+                            <button class="api-btn primary" onclick="window.navigationManager.scrollToSection('pricing'); this.closest('.modal-overlay').remove();">
+                                <i class="fas fa-credit-card"></i>
+                                View Pricing Plans
+                            </button>
+                            <button class="api-btn secondary" onclick="window.navigationManager.showDocumentationModal(); this.closest('.modal-overlay').remove();">
+                                <i class="fas fa-book"></i>
+                                View Documentation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add event listener for close button
+        const closeBtn = modal.querySelector('#apiModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) this.closeModal(modal);
