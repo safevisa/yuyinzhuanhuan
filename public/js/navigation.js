@@ -312,7 +312,7 @@ class NavigationManager {
                 name: 'Starter',
                 price: 9,
                 features: [
-                    '10 voice conversions per month',
+                    '10 voice conversions per month(No limit on the number of times)',
                     'Basic voice options',
                     'Standard quality output',
                     'Email support'
@@ -322,7 +322,7 @@ class NavigationManager {
                 name: 'Professional',
                 price: 29,
                 features: [
-                    '100 voice conversions per month',
+                    '100 voice conversions per month (No limit on the number of times)',
                     'Premium voice library',
                     'HD quality output',
                     'Priority support',
@@ -333,7 +333,7 @@ class NavigationManager {
                 name: 'Enterprise',
                 price: 99,
                 features: [
-                    'Unlimited conversions',
+                    'Unlimited voice conversions',
                     'Custom voice training',
                     'Ultra HD quality',
                     '24/7 dedicated support',
@@ -921,7 +921,7 @@ class NavigationManager {
                         </div>
                         
                         <div class="api-actions">
-                            <button class="api-btn primary" onclick="window.navigationManager.scrollToSection('pricing'); this.closest('.modal-overlay').remove();">
+                            <button class="api-btn primary" id="viewPricingBtn">
                                 <i class="fas fa-credit-card"></i>
                                 View Pricing Plans
                             </button>
@@ -939,6 +939,15 @@ class NavigationManager {
         
         // Add event listener for close button
         const closeBtn = modal.querySelector('#apiModalClose');
+        const viewPricingBtn = modal.querySelector('#viewPricingBtn');
+
+        if (viewPricingBtn) {
+            viewPricingBtn.addEventListener('click', () => {
+                window.navigationManager.scrollToSection('pricing');
+                modal.remove();
+            })
+            
+        }
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 modal.remove();
