@@ -467,8 +467,8 @@ class NavigationManager {
                             <div>
                                 <h4>Address</h4>
                                 <p>NEXREALM SOLUTIONS LTD<br>
-                                5 South Charlotte Street<br>
-                                Edinburgh, EH2 4AN<br>
+                                Flat 2/3 48 West George Street<br>
+                                Glasgow, G2 1BP<br>
                                 United Kingdom</p>
                             </div>
                         </div>
