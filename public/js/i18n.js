@@ -78,6 +78,7 @@ class I18n {
                 'auth.email': "Email",
                 'auth.password': "Password",
                 'auth.username': "Username",
+                'auth.uploadAvatar': "Upload Avatar",
                 'auth.login_required': "Login Required",
                 'auth.login_to_use': "Please login to use voice recording and transformation features.",
                 

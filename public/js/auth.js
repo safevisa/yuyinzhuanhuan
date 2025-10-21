@@ -1027,7 +1027,10 @@ class AuthManager {
                         
                         <div class="form-group">
                             <label for="editAvatar">Avatar</label>
-                            <input type="file" id="editAvatar" accept="image/*">
+                            <input type="file" id="editAvatar" accept="image/\*" style="display:none">
+                            <button data-i18n="auth.uploadAvatar" style="width: 100%; height: 40px;" id="uploadAvatarBtn" class="custom-upload-btn">
+                                upload avatar
+                            </button>
                             <div class="avatar-preview">
                                 <img src="${this.user.avatar || '/assets/default-avatar.png'}" alt="Avatar Preview" id="avatarPreview">
                             </div>
@@ -1050,6 +1053,13 @@ class AuthManager {
         const form = modal.querySelector('#editProfileForm');
         const avatarInput = modal.querySelector('#editAvatar');
         const avatarPreview = modal.querySelector('#avatarPreview');
+        const uploadAvatarBtn = modal.querySelector('#uploadAvatarBtn');
+
+        if (uploadAvatarBtn) {
+            uploadAvatarBtn.addEventListener('click', () => {
+                avatarInput.click();
+            });
+        }
         
         if (closeBtn) {
             closeBtn.addEventListener('click', () => modal.remove());
@@ -1168,6 +1178,9 @@ class AuthManager {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
         });
+        if (window.i18n) {
+            window.i18n.updateDOM();
+        }
     }
     updateUserInterface() {
         const displayName = document.getElementById('userName');
