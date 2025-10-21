@@ -338,6 +338,20 @@ app.get('/api/download/:filename', (req, res) => {
         res.status(404).json({ error: 'File not found' });
     }
 });
+// delete processed audio
+app.delete('/api/delete/:id', authManager.authenticateToken.bind(authManager), async (req, res) => {
+    const id = req.params.id;
+    const filepath = path.join(__dirname, 'uploads', id);
+    await database.beginTransaction();
+    await database.deleteRecording(recording.id);
+    if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+        await database.commitTransaction();
+        res.json({ success: true, message: 'File deleted successfully' });
+    } else {
+        res.status(404).json({ error: 'File not found' });
+    }
+})
 
 // Serve shared recording page
 app.get('/share/:token', async (req, res) => {

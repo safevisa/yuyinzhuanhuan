@@ -708,6 +708,30 @@ class AuthManager {
         link.click();
         document.body.removeChild(link);
     }
+    async playRecording(id) {
+        try {
+            const audio = new Audio(`/uploads/${id}`);
+            await audio.play();
+        } catch (err) {
+            this.showMessage('Playback failed', 'error');
+        }
+    }
+    async deleteRecording(id, index) {
+        const response = await fetch(`/api/delete/${id}`, {
+            method: 'delete',
+        })
+        if (response.ok) {
+            this.showMessage('Recording deleted successfully', 'success');
+            const recordingsContainer = document.getElementById('workspaceRecordings');
+            // Remove the recording from the DOM
+            const recordingElement = recordingsContainer.children[index];
+            if (recordingElement) {
+                recordingElement.remove();
+            }
+        } else {
+            this.showMessage('Failed to delete recording', 'error');
+        }
+    }
 
     // Helper methods
     setAuthButtonLoading(loading) {
@@ -1309,7 +1333,7 @@ class AuthManager {
     async loadWorkspaceRecordings() {
         const recordingsContainer = document.getElementById('workspaceRecordings');
         if (!recordingsContainer) return;
-        
+        let that = this
         try {
             const response = await fetch('/api/recordings', {
                 headers: {
@@ -1332,12 +1356,25 @@ class AuthManager {
                                 <p>Created: ${new Date(recording.created_at).toLocaleDateString()}</p>
                             </div>
                             <div class="recording-actions">
-                                <button class="btn small" onclick="this.playRecording('${recording.id}')">Play</button>
-                                <button class="btn small secondary" onclick="this.downloadRecording('${recording.id}')">Download</button>
-                                <button class="btn small danger" onclick="this.deleteRecording('${recording.id}')">Delete</button>
+                                <button class="btn small play-btn" id="playRecord${recording.processed_filename}" data-id="${recording.processed_filename}">Play</button>
+                                <button class="btn small secondary download-btn" id="downloadRecording${recording.processed_filename}" data-id="${recording.processed_filename}">Download</button>
+                                <button class="btn small danger delete-btn" id="deleteRecording${recording.processed_filename}" data-id="${recording.processed_filename}">Delete</button>
                             </div>
                         </div>
                     `).join('');
+                    recordingsContainer.addEventListener('click', function(event) {
+                        const target = event.target;
+                        const recordingId = target.closest('button')?.dataset?.id;
+                        if (recordingId) {
+                            if (target.id === `playRecord${recordingId}`) {
+                                that.playRecording(recordingId);
+                            } else if (target.id === `downloadRecording${recordingId}`) {
+                                that.downloadRecording(recordingId);
+                            } else if (target.id === `deleteRecording${recordingId}`) {
+                                that.deleteRecording(recordingId, recordings.findIndex(r => r.processed_filename === recordingId));
+                            }
+                        }
+                    })
                 }
             } else {
                 recordingsContainer.innerHTML = '<div class="error-state">Failed to load recordings</div>';

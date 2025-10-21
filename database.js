@@ -261,7 +261,35 @@ class Database {
             );
         });
     }
-
+    async beginTransaction () {
+        return new Promise((resolve, reject) => {
+            this.db.run('BEGIN TRANSACTION', (err) => {
+            if (err) reject(err);
+            else resolve();
+            });
+        });
+    }
+    async deleteRecording(processed_filename) {
+        // 根据processed_filename 删除对应记录
+        return new Promise((resolve, reject) => {
+            this.db.run(
+            'DELETE FROM recordings WHERE processed_filename = ?',
+            [processed_filename],
+            (err) => {
+                if (err) reject(err);
+                else resolve();
+            }
+            );
+        });
+    }
+    async commitTransaction () {
+        return new Promise((resolve, reject) => {
+            this.db.run('COMMIT', (err) => {
+            if (err) reject(err);
+            else resolve();
+            });
+        });
+    }
     async getUserRecordings(userId, limit = 50, offset = 0) {
         return new Promise((resolve, reject) => {
             this.db.all(`
