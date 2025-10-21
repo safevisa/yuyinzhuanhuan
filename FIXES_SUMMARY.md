@@ -48,7 +48,7 @@ app.post('/api/auth/register', registerLimiter, authManager.register.bind(authMa
   - 行动按钮
 
 - ✅ **页脚升级**
-  - 公司信息（NEXREALM SOLUTIONS., LTD）
+  - 公司信息（NEXREALM SOLUTIONS LTD）
   - 产品链接
   - 支持链接
   - 地址信息

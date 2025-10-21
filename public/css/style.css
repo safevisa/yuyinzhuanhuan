@@ -750,6 +750,13 @@ button:disabled {
     box-shadow: 0 8px 32px var(--shadow-lg);
     border: 1px solid var(--border);
 }
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+}
 
 .modal-header {
     display: flex;

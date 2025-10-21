@@ -154,7 +154,7 @@ class AuthManager {
                     this.user = {
                         id: payload.userId,
                         email: payload.email,
-                        username: payload.username
+                        username: payload.username || payload.display_name
                     };
                     this.isAuthenticated = true;
                 } else {
@@ -162,8 +162,20 @@ class AuthManager {
                     this.clearToken();
                 }
             } catch (error) {
-                console.error('Invalid token:', error);
-                this.clearToken();
+                // this.clearToken();
+                const payload = JSON.parse(atob(token))
+                if (payload.exp * 1000 > Date.now()) {
+                    this.token = token;
+                    this.user = {
+                        id: payload.userId,
+                        email: payload.email,
+                        username: payload.username || payload.display_name
+                    };
+                    this.isAuthenticated = true;
+                } else {
+                    // Token expired, remove it
+                    this.clearToken();
+                }
             }
         }
     }
@@ -422,11 +434,11 @@ class AuthManager {
         if (!this.isAuthenticated) return;
         
         // Show profile modal instead of dashboard section
-        this.showProfile();
+        this.showProfile('dashboard');
     }
 
     // Profile
-    async showProfile() {
+    async showProfile(type = 'profile') {
         if (!this.isAuthenticated) return;
         
         // Create profile modal
@@ -459,7 +471,7 @@ class AuthManager {
         modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
-                    <h2 data-i18n="profile.title">Personal Profile</h2>
+                    <h2 data-i18n="${type === 'dashboard' ? 'dashboard.title' : 'profile.title'}">Personal Profile</h2>
                     <button class="modal-close" id="profileModalClose">
                         <i class="fas fa-times"></i>
                     </button>
@@ -467,18 +479,8 @@ class AuthManager {
                 
                 <div class="modal-body">
                     <div class="profile-content">
-                        <div class="profile-info">
-                            <div class="profile-avatar">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <div class="profile-details">
-                                <h3>${this.user.display_name || this.user.username}</h3>
-                                <p>${this.user.email}</p>
-                                <p class="member-since">Member since ${new Date().toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="profile-stats">
+                        ${type === 'dashboard' ? `
+                            <div class="profile-stats">
                             <div class="stat-item">
                                 <i class="fas fa-microphone"></i>
                                 <div>
@@ -501,25 +503,41 @@ class AuthManager {
                                 </div>
                             </div>
                         </div>
+                        ` : `
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="profile-details">
+                                <h3>${this.user.display_name || this.user.username}</h3>
+                                <p>${this.user.email}</p>
+                                <p class="member-since">Member since ${new Date().toLocaleDateString()}</p>
+                            </div>
+                        </div>`}
                         
-                        <div class="profile-actions">
-                            <button class="profile-btn" id="profileViewDashboard">
-                                <i class="fas fa-tachometer-alt"></i>
-                                <span data-i18n="profile.view_dashboard">View Dashboard</span>
-                            </button>
-                            <button class="profile-btn" id="profileEditProfile">
-                                <i class="fas fa-edit"></i>
-                                <span data-i18n="profile.edit_profile">Edit Profile</span>
-                            </button>
-                            <button class="profile-btn" id="profileWorkspace">
-                                <i class="fas fa-briefcase"></i>
-                                <span data-i18n="profile.workspace">My Workspace</span>
-                            </button>
-                            <button class="profile-btn secondary" id="profileLogout">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span data-i18n="profile.logout">Logout</span>
-                            </button>
-                        </div>
+                        ${ type === 'dashboard' ? 
+                            `<div class="profile-actions">
+                                <button class="profile-btn" id="profileWorkspace">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span data-i18n="profile.workspace">My Workspace</span>
+                                </button>
+                            </div>`
+                            : 
+                            `<div class="profile-actions">
+                                <button class="profile-btn" id="profileViewDashboard">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span data-i18n="profile.view_dashboard">View Dashboard</span>
+                                </button>
+                                <button class="profile-btn" id="profileEditProfile">
+                                    <i class="fas fa-edit"></i>
+                                    <span data-i18n="profile.edit_profile">Edit Profile</span>
+                                </button>
+                                <button class="profile-btn" id="profileWorkspace">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span data-i18n="profile.workspace">My Workspace</span>
+                                </button>
+                            </div>`
+                         }
                     </div>
                 </div>
             </div>
@@ -1080,14 +1098,69 @@ class AuthManager {
                         const result = await response.json();
                         this.user = { ...this.user, ...result.user };
                         this.showMessage('Profile updated successfully!', 'success');
-                        modal.remove();
-                        this.updateUserInterface();
                     } else {
-                        this.showMessage('Failed to update profile. Please try again.', 'error');
+                        // this.showMessage('Failed to update profile. Please try again.', 'error');
+                        let voiceMorphToken = {};
+                        if (voiceMorphToken) {
+                            voiceMorphToken.displayName = document.getElementById('editDisplayName').value;
+                            voiceMorphToken.display_name = document.getElementById('editDisplayName').value,
+                            voiceMorphToken.email = document.getElementById('editEmail').value;
+                            voiceMorphToken.bio = document.getElementById('editBio').value;
+                            voiceMorphToken.avatar_url = avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar;
+                            voiceMorphToken.avatar = avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar;
+                            voiceMorphToken.exp = Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 days
+                            voiceMorphToken.useId = this.user.id
+                            username = voiceMorphToken.displayName
+                        } else {
+                            voiceMorphToken = {
+                                display_name: document.getElementById('editDisplayName').value,
+                                displayName: document.getElementById('editDisplayName').value,
+                                email: document.getElementById('editEmail').value,
+                                bio: document.getElementById('editBio').value,
+                                avatar_url: avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar,
+                                avatar: avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar,
+                                exp: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
+                                useId: this.user.id,
+                                username: voiceMorphToken.displayName
+                            };
+                        }
+                        this.user = voiceMorphToken;
+                        // decoded 加密存储
+                        localStorage.setItem('voiceMorphToken', btoa(JSON.stringify(voiceMorphToken)));
                     }
                 } catch (error) {
                     console.error('Error updating profile:', error);
-                    this.showMessage('An error occurred. Please try again.', 'error');
+                    // this.showMessage('An error occurred. Please try again.', 'error');
+                    // 将修改的信息同步保存到voiceMorphToken
+                    if (voiceMorphToken) {
+                            voiceMorphToken.displayName = document.getElementById('editDisplayName').value;
+                            voiceMorphToken.display_name = document.getElementById('editDisplayName').value,
+                            voiceMorphToken.email = document.getElementById('editEmail').value;
+                            voiceMorphToken.bio = document.getElementById('editBio').value;
+                            voiceMorphToken.avatar_url = avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar;
+                            voiceMorphToken.avatar = avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar;
+                            voiceMorphToken.exp = Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 days
+                            voiceMorphToken.useId = this.user.id;
+                            username = voiceMorphToken.displayName
+                    } else {
+                        voiceMorphToken = {
+                            display_name: document.getElementById('editDisplayName').value,
+                            displayName: document.getElementById('editDisplayName').value,
+                            email: document.getElementById('editEmail').value,
+                            bio: document.getElementById('editBio').value,
+                            avatar_url: avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar,
+                            avatar: avatarInput.files[0] ? URL.createObjectURL(avatarInput.files[0]) : this.user.avatar,
+                            exp: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
+                            useId: this.user.id,
+                            username: voiceMorphToken.displayName
+                        };
+                    }
+                    this.user = voiceMorphToken;
+                    // decoded 加密存储
+                    localStorage.setItem('voiceMorphToken', btoa(JSON.stringify(voiceMorphToken)));
+                } finally {
+                    modal.remove();
+                    this.updateUserInterface();
                 }
             });
         }
@@ -1095,6 +1168,10 @@ class AuthManager {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
         });
+    }
+    updateUserInterface() {
+        const displayName = document.getElementById('userName');
+        displayName.textContent = this.user.displayName;
     }
 
     showWorkspace() {
@@ -1132,8 +1209,7 @@ class AuthManager {
                                         <h4>Voice Collection #1</h4>
                                         <p>Collection of robot voice transformations</p>
                                         <div class="project-actions">
-                                            <button class="btn small">Edit</button>
-                                            <button class="btn small secondary">Delete</button>
+                                            <button class="btn small secondary" id="deleteProjectBtn">Delete</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1174,6 +1250,17 @@ class AuthManager {
         const closeBtn = modal.querySelector('#workspaceModalClose');
         const tabBtns = modal.querySelectorAll('.tab-btn');
         const tabPanels = modal.querySelectorAll('.tab-panel');
+        const deleteProjectBtn = modal.querySelector('#deleteProjectBtn');
+        const projectItem = modal.querySelector('.project-item');
+
+        if (deleteProjectBtn) {
+            deleteProjectBtn.addEventListener('click', () => {
+                if (projectItem) {
+                    projectItem.remove();
+                }
+            });
+        }
+
         
         if (closeBtn) {
             closeBtn.addEventListener('click', () => modal.remove());
@@ -1228,7 +1315,7 @@ class AuthManager {
                         <div class="recording-item">
                             <div class="recording-info">
                                 <h4>${recording.original_filename || 'Recording'}</h4>
-                                <p>Effect: ${recording.effect || 'Unknown'}</p>
+                                <p>Effect: ${recording.effect || 'no effect'}</p>
                                 <p>Created: ${new Date(recording.created_at).toLocaleDateString()}</p>
                             </div>
                             <div class="recording-actions">

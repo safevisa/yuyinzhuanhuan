@@ -201,6 +201,16 @@ class I18n {
                 'footer.privacy': "Privacy Policy",
                 'footer.terms': "T&C",
                 'footer.refund': "Return & Refund Policy",
+
+                // profile
+                'profile.title': "Profile",
+                'profile.view_dashboard': "View Dashboard",
+                'profile.edit_profile': "Edit Profile",
+                'profile.workspace': "My Workspace",
+                'profile.logout': "Logout",
+                
+                // dashboard
+                'dashboard.title': "Dashboard",
                 
                 // Demo
                 'demo.title': "Voice Transformation Demo",

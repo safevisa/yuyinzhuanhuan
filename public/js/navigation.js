@@ -466,7 +466,7 @@ class NavigationManager {
                             <i class="fas fa-map-marker-alt"></i>
                             <div>
                                 <h4>Address</h4>
-                                <p>NEXREALM SOLUTIONS., LTD<br>
+                                <p>NEXREALM SOLUTIONS LTD<br>
                                 5 South Charlotte Street<br>
                                 Edinburgh, EH2 4AN<br>
                                 United Kingdom</p>
@@ -552,37 +552,37 @@ class NavigationManager {
                         <div class="doc-section">
                             <h3><i class="fas fa-rocket"></i> Getting Started</h3>
                             <ul>
-                                <li><a href="#">Quick Start Guide</a></li>
-                                <li><a href="#">API Introduction</a></li>
-                                <li><a href="#">Authentication</a></li>
+                                <li><a href="/document.html#quick-start-guide">Quick Start Guide</a></li>
+                                <li><a href="/document.html#api-introduction">API Introduction</a></li>
+                                <li><a href="/document.html#authentication">Authentication</a></li>
                             </ul>
                         </div>
                         
                         <div class="doc-section">
                             <h3><i class="fas fa-code"></i> API Reference</h3>
                             <ul>
-                                <li><a href="#">Voice Conversion API</a></li>
-                                <li><a href="#">Voice Models</a></li>
-                                <li><a href="#">Rate Limits</a></li>
-                                <li><a href="#">Error Codes</a></li>
+                                <li><a href="/document.html#voice-conversion-api">Voice Conversion API</a></li>
+                                <li><a href="/document.html#voice-models">Voice Models</a></li>
+                                <li><a href="/document.html#rate-limits">Rate Limits</a></li>
+                                <li><a href="/document.html#error-codes">Error Codes</a></li>
                             </ul>
                         </div>
                         
                         <div class="doc-section">
                             <h3><i class="fas fa-book"></i> Guides & Tutorials</h3>
                             <ul>
-                                <li><a href="#">Best Practices</a></li>
-                                <li><a href="#">Audio Quality Tips</a></li>
-                                <li><a href="#">Troubleshooting</a></li>
+                                <li><a href="/document.html#best-practices">Best Practices</a></li>
+                                <li><a href="/document.html#audio-quality-tips">Audio Quality Tips</a></li>
+                                <li><a href="/document.html#troubleshooting">Troubleshooting</a></li>
                             </ul>
                         </div>
                         
                         <div class="doc-section">
                             <h3><i class="fas fa-question-circle"></i> FAQ</h3>
                             <ul>
-                                <li><a href="#">Common Questions</a></li>
-                                <li><a href="#">Billing & Plans</a></li>
-                                <li><a href="#">Technical Issues</a></li>
+                                <li><a href="/document.html#common-questions">Common Questions</a></li>
+                                <li><a href="/document.html#billing-plans">Billing & Plans</a></li>
+                                <li><a href="/document.html#technical-issues">Technical Issues</a></li>
                             </ul>
                         </div>
                     </div>
@@ -599,18 +599,18 @@ class NavigationManager {
         }
         
         // Add event listeners for documentation links
-        const docLinks = modal.querySelectorAll('.doc-section a');
-        docLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const linkText = link.textContent.trim();
-                this.showMessage(`Opening: ${linkText}`, 'info');
-                // Here you can add actual functionality for each link
-                setTimeout(() => {
-                    this.closeModal(modal);
-                }, 1500);
-            });
-        });
+        // const docLinks = modal.querySelectorAll('.doc-section a');
+        // docLinks.forEach(link => {
+        //     link.addEventListener('click', (e) => {
+        //         e.preventDefault();
+        //         const linkText = link.textContent.trim();
+        //         this.showMessage(`Opening: ${linkText}`, 'info');
+        //         // Here you can add actual functionality for each link
+        //         setTimeout(() => {
+        //             this.closeModal(modal);
+        //         }, 1500);
+        //     });
+        // });
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) this.closeModal(modal);

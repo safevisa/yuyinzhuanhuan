@@ -367,7 +367,7 @@ app.get('/share/:token', async (req, res) => {
                 <h1>🎙️ Shared Voice Recording</h1>
                 <div class="info">
                     <h2>${recording.title}</h2>
-                    <p><strong>Effect:</strong> ${recording.effect_type}</p>
+                    <p><strong>Effect:</strong> ${recording.effect_type || 'No effect'}</p>
                     <p><strong>By:</strong> ${recording.display_name || recording.username}</p>
                     <p><strong>Created:</strong> ${new Date(recording.created_at).toLocaleDateString()}</p>
                     <p><strong>Plays:</strong> ${recording.play_count}</p>

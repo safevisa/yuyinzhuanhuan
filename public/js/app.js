@@ -207,6 +207,8 @@ class VoiceMorphApp {
         
         customCard.addEventListener('click', (e) => {
             if (e.target.closest('.upload-sample-btn') || e.target.closest('#customVoiceFile')) {
+                // 暂未支持自定义语音文件
+                this.showMessage('coming soon！');
                 return; // Don't select effect when clicking upload button
             }
             this.selectEffect('custom');
@@ -754,8 +756,8 @@ class VoiceMorphApp {
                                         <i class="fas fa-play"></i> Play Original
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="/demo/original.wav" type="audio/wav">
                                         <source src="/demo/original.mp3" type="audio/mp3">
+                                        <source src="/demo/original.wav" type="audio/wav">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -768,8 +770,8 @@ class VoiceMorphApp {
                                         <i class="fas fa-play"></i> Play Robot
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="/demo/robot.wav" type="audio/wav">
                                         <source src="/demo/robot.mp3" type="audio/mp3">
+                                        <source src="/demo/robot.wav" type="audio/wav">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -782,8 +784,8 @@ class VoiceMorphApp {
                                         <i class="fas fa-play"></i> Play Chipmunk
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="/demo/chipmunk.wav" type="audio/wav">
                                         <source src="/demo/chipmunk.mp3" type="audio/mp3">
+                                        <source src="/demo/chipmunk.wav" type="audio/wav">
                                         Sample audio not available
                                     </audio>
                                 </div>
@@ -796,8 +798,8 @@ class VoiceMorphApp {
                                         <i class="fas fa-play"></i> Play Deep Voice
                                     </button>
                                     <audio controls style="width: 100%; margin-top: 0.5rem;">
-                                        <source src="/demo/deep.wav" type="audio/wav">
                                         <source src="/demo/deep.mp3" type="audio/mp3">
+                                        <source src="/demo/deep.wav" type="audio/wav">
                                         Sample audio not available
                                     </audio>
                                 </div>
