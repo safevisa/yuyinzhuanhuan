@@ -214,7 +214,7 @@ class VoiceMorphApp {
             this.selectEffect('custom');
         });
         
-        this.elements.effectsGrid.appendChild(customCard);
+        // this.elements.effectsGrid.appendChild(customCard);
         
         // Add regular effects
         Object.keys(this.availableEffects).forEach(effectKey => {
