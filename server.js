@@ -343,7 +343,7 @@ app.delete('/api/delete/:id', authManager.authenticateToken.bind(authManager), a
     const id = req.params.id;
     const filepath = path.join(__dirname, 'uploads', id);
     await database.beginTransaction();
-    await database.deleteRecording(recording.id);
+    await database.deleteRecording(id);
     if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath);
         await database.commitTransaction();

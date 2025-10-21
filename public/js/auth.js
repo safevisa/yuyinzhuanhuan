@@ -719,6 +719,9 @@ class AuthManager {
     async deleteRecording(id, index) {
         const response = await fetch(`/api/delete/${id}`, {
             method: 'delete',
+            headers: {
+                'Authorization': `Bearer ${this.token}`
+            }
         })
         if (response.ok) {
             this.showMessage('Recording deleted successfully', 'success');
