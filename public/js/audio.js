@@ -47,8 +47,12 @@ class AudioManager {
     }
 
     async requestMicrophoneAccess() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            // alert('浏览器不支持媒体设备API');
+            throw new Error('The browser does not support the media device API');
+        }
         try {
-            this.audioStream = await navigator.mediaDevices.getUserMedia({
+            this.audioStream = await navigator.mediaDevices?.getUserMedia({
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
