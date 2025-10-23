@@ -183,6 +183,15 @@ class I18n {
                 'pricing.enterprise.f4': "24/7 dedicated support",
                 'pricing.enterprise.f5': "Full API access",
                 'pricing.enterprise.f6': "Custom integrations",
+                'pricing.custom.name': "Custom Plan",
+                'pricing.custom.price': "Tailored Pricing",
+                'pricing.custom.f1': "Fully scalable conversions",
+                'pricing.custom.f2': "Personalized voice cloning",
+                'pricing.custom.f3': "Studio-grade audio quality",
+                'pricing.custom.f4': "Dedicated engineering team",
+                'pricing.custom.f5': "White-label solutions",
+                'pricing.custom.f6': "SLA guarantees",
+                'pricing.custom.contact_us': "Contact Us for Custom Quote",
                 
                 // CTA
                 'cta.title': "Ready to Transform Your Voice?",

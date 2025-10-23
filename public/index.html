@@ -388,6 +388,64 @@
                         </div>
                         <button class="plan-button" data-i18n="pricing.get_started">Get Started</button>
                     </div>
+                    <!-- 自定义价格 -->
+                     <div class="pricing-card custom-plan">
+                        <div class="plan-name" data-i18n="pricing.custom.name">Custom Plan</div>
+                        
+                        <div class="plan-price">
+                            <div class="price-slider-container">
+                                <div class="price-display">
+                                    <span class="currency">$</span>
+                                    <span id="custom-price-value" class="amount">29</span>
+                                    <span class="period" data-i18n="pricing.period">/month</span>
+                                </div>
+                                <input type="range" id="price-slider" min="9" max="99" value="29" class="slider">
+                                <div class="slider-labels">
+                                    <span>$9</span>
+                                    <span>$99</span>
+                                </div>
+                            </div>
+                            
+                            <div class="conversion-display">
+                                <div class="conversion-count">
+                                    <span id="conversion-result">100</span>
+                                    <span>conversions per month</span>
+                                </div>
+                                <div class="conversion-explanation">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Price to conversion ratio: $1 ≈ 4 conversions</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="plan-features">
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span>Fully scalable conversions</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span>Personalized voice cloning</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span>Studio-grade audio quality</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span>Dedicated engineering team</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span>White-label solutions</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-check"></i>
+                                <span>SLA guarantees</span>
+                            </div>
+                        </div>
+                        <button class="plan-button custom-plan-button" data-i18n="pricing.get_started">Request Custom Quote</button>
+                    </div>    
                 </div>
             </section>
             

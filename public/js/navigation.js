@@ -1,193 +1,253 @@
 // Navigation and Page Management Module
 class NavigationManager {
-    constructor() {
-        this.currentSection = 'home';
-        this.init();
+  constructor() {
+    this.currentSection = "home";
+    this.init();
+  }
+
+  init() {
+    this.setupEventListeners();
+    this.setupSmoothScrolling();
+    this.calculateCustomPrice();
+  }
+
+  setupEventListeners() {
+    // Footer links navigation
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest('a[href^="#"]');
+      if (link) {
+        e.preventDefault();
+        const target = link.getAttribute("href").substring(1);
+        this.scrollToSection(target);
+      }
+    });
+
+    // Pricing plan buttons
+    document.addEventListener("click", (e) => {
+      if (e.target.closest(".plan-button")) {
+        e.preventDefault();
+        const planCard = e.target.closest(".pricing-card");
+        const planType = this.getPlanType(planCard);
+        this.handlePlanSelection(planType);
+      }
+    });
+
+    // Contact and support links
+    document.addEventListener("click", (e) => {
+      const linkText = e.target.textContent || "";
+
+      // Handle specific footer links
+      if (
+        e.target.matches('[data-i18n="footer.contact"]') ||
+        linkText.includes("Contact")
+      ) {
+        e.preventDefault();
+        this.showContactModal();
+      }
+
+      if (
+        e.target.matches('[data-i18n="footer.documentation"]') ||
+        linkText.includes("Documentation")
+      ) {
+        e.preventDefault();
+        this.showDocumentationModal();
+      }
+
+      if (
+        e.target.matches('[data-i18n="footer.privacy"]') ||
+        linkText.includes("Privacy")
+      ) {
+        e.preventDefault();
+        this.showPrivacyModal();
+      }
+
+      if (
+        e.target.matches('[data-i18n="footer.terms"]') ||
+        linkText.includes("T&C")
+      ) {
+        e.preventDefault();
+        this.showTermsModal();
+      }
+
+      if (
+        e.target.matches('[data-i18n="footer.refund"]') ||
+        linkText.includes("Refund") ||
+        linkText.includes("退款")
+      ) {
+        e.preventDefault();
+        this.showRefundModal();
+      }
+
+      // Handle product menu links
+      if (
+        e.target.matches('[data-i18n="footer.voice_conversion"]') ||
+        linkText.includes("Voice Conversion") ||
+        linkText.includes("语音转换")
+      ) {
+        e.preventDefault();
+        this.scrollToSection("voice-recorder");
+      }
+
+      if (
+        e.target.matches('[data-i18n="footer.api_access"]') ||
+        linkText.includes("API Access") ||
+        linkText.includes("API访问")
+      ) {
+        e.preventDefault();
+        this.showApiAccessModal();
+      }
+
+      if (
+        e.target.matches('[data-i18n="footer.pricing"]') ||
+        linkText.includes("Pricing") ||
+        linkText.includes("定价")
+      ) {
+        e.preventDefault();
+        this.scrollToSection("pricing");
+      }
+    });
+  }
+  // 计算自定义价格
+  calculateCustomPrice() {
+    const priceSlider = document.getElementById("price-slider");
+    const priceValue = document.getElementById("custom-price-value");
+    const conversionResult = document.getElementById("conversion-result");
+    // 初始计算
+    calculateConversions(priceSlider.value);
+    priceSlider.addEventListener("input", function () {
+      const value = this.value;
+      priceValue.textContent = value;
+      calculateConversions(value);
+    });
+    function calculateConversions(price) {
+      // 基础算法：价格越高，转换次数增长越快
+      const base = 10; // 最低9美元对应10次
+      const exponent = 1.5; // 增长指数
+      const conversions = Math.floor(base * Math.pow(price / 9, exponent));
+
+      // 确保最高99美元不超过1000次
+      const maxConversions = 1000;
+      const result = Math.min(conversions, maxConversions);
+
+      conversionResult.textContent = result.toLocaleString();
+    }
+  }
+
+  setupSmoothScrolling() {
+    // Add smooth scrolling to all internal links
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute("href").substring(1);
+        this.scrollToSection(targetId);
+      });
+    });
+  }
+
+  scrollToSection(sectionId) {
+    // Validate sectionId
+    if (!sectionId || sectionId.trim() === "" || sectionId === ".") {
+      console.warn("Invalid sectionId provided to scrollToSection:", sectionId);
+      return;
     }
 
-    init() {
-        this.setupEventListeners();
-        this.setupSmoothScrolling();
-    }
+    let targetElement;
 
-    setupEventListeners() {
-        // Footer links navigation
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('a[href^="#"]');
-            if (link) {
-                e.preventDefault();
-                const target = link.getAttribute('href').substring(1);
-                this.scrollToSection(target);
-            }
-        });
-
-        // Pricing plan buttons
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.plan-button')) {
-                e.preventDefault();
-                const planCard = e.target.closest('.pricing-card');
-                const planType = this.getPlanType(planCard);
-                this.handlePlanSelection(planType);
-            }
-        });
-
-        // Contact and support links
-        document.addEventListener('click', (e) => {
-            const linkText = e.target.textContent || '';
-            
-            // Handle specific footer links
-            if (e.target.matches('[data-i18n="footer.contact"]') || linkText.includes('Contact')) {
-                e.preventDefault();
-                this.showContactModal();
-            }
-            
-            if (e.target.matches('[data-i18n="footer.documentation"]') || linkText.includes('Documentation')) {
-                e.preventDefault();
-                this.showDocumentationModal();
-            }
-            
-            if (e.target.matches('[data-i18n="footer.privacy"]') || linkText.includes('Privacy')) {
-                e.preventDefault();
-                this.showPrivacyModal();
-            }
-            
-            if (e.target.matches('[data-i18n="footer.terms"]') || linkText.includes('T&C')) {
-                e.preventDefault();
-                this.showTermsModal();
-            }
-            
-            if (e.target.matches('[data-i18n="footer.refund"]') || linkText.includes('Refund') || linkText.includes('退款')) {
-                e.preventDefault();
-                this.showRefundModal();
-            }
-            
-            // Handle product menu links
-            if (e.target.matches('[data-i18n="footer.voice_conversion"]') || linkText.includes('Voice Conversion') || linkText.includes('语音转换')) {
-                e.preventDefault();
-                this.scrollToSection('voice-recorder');
-            }
-            
-            if (e.target.matches('[data-i18n="footer.api_access"]') || linkText.includes('API Access') || linkText.includes('API访问')) {
-                e.preventDefault();
-                this.showApiAccessModal();
-            }
-            
-            if (e.target.matches('[data-i18n="footer.pricing"]') || linkText.includes('Pricing') || linkText.includes('定价')) {
-                e.preventDefault();
-                this.scrollToSection('pricing');
-            }
-        });
-    }
-
-    setupSmoothScrolling() {
-        // Add smooth scrolling to all internal links
-        const links = document.querySelectorAll('a[href^="#"]');
-        links.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href').substring(1);
-                this.scrollToSection(targetId);
-            });
-        });
-    }
-
-    scrollToSection(sectionId) {
-        // Validate sectionId
-        if (!sectionId || sectionId.trim() === '' || sectionId === '.') {
-            console.warn('Invalid sectionId provided to scrollToSection:', sectionId);
-            return;
+    switch (sectionId) {
+      case "home":
+        targetElement = document.querySelector(".hero");
+        break;
+      case "how-it-works":
+        targetElement = document.querySelector(".how-it-works");
+        break;
+      case "features":
+      case "why-choose":
+        targetElement = document.querySelector(".why-choose");
+        break;
+      case "pricing":
+        targetElement = document.querySelector(".pricing");
+        break;
+      case "voice-recorder":
+      case "recorder":
+        targetElement = document.querySelector(".recorder-section");
+        break;
+      case "contact":
+        this.showContactModal();
+        return;
+      default:
+        // First try to find by ID
+        targetElement = document.getElementById(sectionId);
+        // If not found by ID and sectionId doesn't start with a dot, try class selector
+        if (!targetElement && !sectionId.startsWith(".")) {
+          targetElement = document.querySelector(`.${sectionId}`);
+        } else if (!targetElement && sectionId.startsWith(".")) {
+          targetElement = document.querySelector(sectionId);
         }
-        
-        let targetElement;
-        
-        switch(sectionId) {
-            case 'home':
-                targetElement = document.querySelector('.hero');
-                break;
-            case 'how-it-works':
-                targetElement = document.querySelector('.how-it-works');
-                break;
-            case 'features':
-            case 'why-choose':
-                targetElement = document.querySelector('.why-choose');
-                break;
-            case 'pricing':
-                targetElement = document.querySelector('.pricing');
-                break;
-            case 'voice-recorder':
-            case 'recorder':
-                targetElement = document.querySelector('.recorder-section');
-                break;
-            case 'contact':
-                this.showContactModal();
-                return;
-            default:
-                // First try to find by ID
-                targetElement = document.getElementById(sectionId);
-                // If not found by ID and sectionId doesn't start with a dot, try class selector
-                if (!targetElement && !sectionId.startsWith('.')) {
-                    targetElement = document.querySelector(`.${sectionId}`);
-                } else if (!targetElement && sectionId.startsWith('.')) {
-                    targetElement = document.querySelector(sectionId);
-                }
-        }
-
-        if (targetElement) {
-            targetElement.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-            this.currentSection = sectionId;
-        }
     }
 
-    getPlanType(planCard) {
-        if (planCard.querySelector('[data-i18n*="starter"]')) return 'starter';
-        if (planCard.querySelector('[data-i18n*="pro"]') || planCard.classList.contains('popular')) return 'professional';
-        if (planCard.querySelector('[data-i18n*="enterprise"]')) return 'enterprise';
-        return 'unknown';
+    if (targetElement) {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      this.currentSection = sectionId;
     }
+  }
 
-    handlePlanSelection(planType) {
-        // Check if user is logged in
-        const isLoggedIn = window.authManager && window.authManager.isLoggedIn();
-        
-        if (!isLoggedIn) {
-            // Show registration modal with plan info
-            this.showRegistrationForPlan(planType);
-        } else {
-            // Show payment modal
-            this.showPaymentModal(planType);
-        }
+  getPlanType(planCard) {
+    if (planCard.querySelector('[data-i18n*="starter"]')) return "starter";
+    if (
+      planCard.querySelector('[data-i18n*="pro"]') ||
+      planCard.classList.contains("popular")
+    )
+      return "professional";
+    if (planCard.querySelector('[data-i18n*="enterprise"]'))
+      return "enterprise";
+    if (planCard.querySelector('[data-i18n*="custom"]')) return "custom";
+    return "unknown";
+  }
+
+  handlePlanSelection(planType) {
+    // Check if user is logged in
+    const isLoggedIn = window.authManager && window.authManager.isLoggedIn();
+
+    if (!isLoggedIn) {
+      // Show registration modal with plan info
+      this.showRegistrationForPlan(planType);
+    } else {
+      // Show payment modal
+      this.showPaymentModal(planType);
     }
+  }
 
-    showRegistrationForPlan(planType) {
-        // Store selected plan for after registration
-        localStorage.setItem('selectedPlan', planType);
-        
-        // Show auth modal with registration form
-        if (window.authManager) {
-            window.authManager.showRegisterModal();
-            
-            // Show message about plan selection
-            setTimeout(() => {
-                this.showMessage(
-                    `Please register to continue with the ${planType} plan.`,
-                    'info'
-                );
-            }, 500);
-        }
+  showRegistrationForPlan(planType) {
+    // Store selected plan for after registration
+    localStorage.setItem("selectedPlan", planType);
+
+    // Show auth modal with registration form
+    if (window.authManager) {
+      window.authManager.showRegisterModal();
+
+      // Show message about plan selection
+      setTimeout(() => {
+        this.showMessage(
+          `Please register to continue with the ${planType} plan.`,
+          "info"
+        );
+      }, 500);
     }
+  }
 
-    showPaymentModal(planType) {
-        const planDetails = this.getPlanDetails(planType);
-        
-        // Create payment modal
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.id = 'paymentModal';
-        
-        modal.innerHTML = `
+  showPaymentModal(planType) {
+    const planDetails = this.getPlanDetails(planType);
+
+    // Create payment modal
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+    modal.id = "paymentModal";
+
+    modal.innerHTML = `
             <div class="modal payment-modal">
                 <div class="modal-header">
                     <h2>Complete Your Purchase</h2>
@@ -205,7 +265,12 @@ class NavigationManager {
                             <span class="period">/month</span>
                         </div>
                         <ul class="features-summary">
-                            ${planDetails.features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('')}
+                            ${planDetails.features
+                              .map(
+                                (f) =>
+                                  `<li><i class="fas fa-check"></i> ${f}</li>`
+                              )
+                              .join("")}
                         </ul>
                     </div>
                     
@@ -256,124 +321,141 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Setup event listeners
-        const closeBtn = modal.querySelector('#paymentModalClose');
-        closeBtn.addEventListener('click', () => this.closeModal(modal));
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
-        
-        // Payment method switcher
-        const methodBtns = modal.querySelectorAll('.payment-method');
-        methodBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                methodBtns.forEach(b => b.classList.remove('active'));
-                e.target.closest('.payment-method').classList.add('active');
-                
-                const method = e.target.dataset.method;
-                if (method === 'paypal') {
-                    modal.querySelector('.card-form').style.display = 'none';
-                    modal.querySelector('.payment-submit-btn').innerHTML = 
-                        '<i class="fab fa-paypal"></i> Continue with PayPal';
-                } else {
-                    modal.querySelector('.card-form').style.display = 'block';
-                    modal.querySelector('.payment-submit-btn').innerHTML = 
-                        `<i class="fas fa-lock"></i> Complete Payment - $${planDetails.price}/month`;
-                }
-            });
-        });
-        
-        // Card number formatting
-        const cardInput = modal.querySelector('input[placeholder*="1234"]');
-        cardInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        });
-        
-        // Expiry date formatting
-        const expiryInput = modal.querySelector('input[placeholder="MM/YY"]');
-        expiryInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
-            }
-            e.target.value = value;
-        });
-    }
 
-    getPlanDetails(planType) {
-        const plans = {
-            starter: {
-                name: 'Starter',
-                price: 9,
-                features: [
-                    '10 voice conversions per month(No limit on the number of times)',
-                    'Basic voice options',
-                    'Standard quality output',
-                    'Email support'
-                ]
-            },
-            professional: {
-                name: 'Professional',
-                price: 29,
-                features: [
-                    '100 voice conversions per month (No limit on the number of times)',
-                    'Premium voice library',
-                    'HD quality output',
-                    'Priority support',
-                    'API access'
-                ]
-            },
-            enterprise: {
-                name: 'Enterprise',
-                price: 99,
-                features: [
-                    'Unlimited voice conversions',
-                    'Custom voice training',
-                    'Ultra HD quality',
-                    '24/7 dedicated support',
-                    'Full API access',
-                    'Custom integrations'
-                ]
-            }
-        };
-        
-        return plans[planType] || plans.starter;
-    }
+    document.body.appendChild(modal);
 
-    processPayment(planType) {
-        // Simulate payment processing
-        this.showMessage('Processing payment...', 'info');
-        
-        // Show loading state
-        const submitBtn = document.querySelector('.payment-submit-btn');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        submitBtn.disabled = true;
-        
-        // Simulate API call
-        setTimeout(() => {
-            // Close payment modal
-            const paymentModal = document.getElementById('paymentModal');
-            if (paymentModal) this.closeModal(paymentModal);
-            
-            // Show success message
-            this.showSuccessModal(planType);
-        }, 3000);
-    }
+    // Setup event listeners
+    const closeBtn = modal.querySelector("#paymentModalClose");
+    closeBtn.addEventListener("click", () => this.closeModal(modal));
 
-    showSuccessModal(planType) {
-        const planDetails = this.getPlanDetails(planType);
-        
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        
-        modal.innerHTML = `
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+
+    // Payment method switcher
+    const methodBtns = modal.querySelectorAll(".payment-method");
+    methodBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        methodBtns.forEach((b) => b.classList.remove("active"));
+        e.target.closest(".payment-method").classList.add("active");
+
+        const method = e.target.dataset.method;
+        if (method === "paypal") {
+          modal.querySelector(".card-form").style.display = "none";
+          modal.querySelector(".payment-submit-btn").innerHTML =
+            '<i class="fab fa-paypal"></i> Continue with PayPal';
+        } else {
+          modal.querySelector(".card-form").style.display = "block";
+          modal.querySelector(
+            ".payment-submit-btn"
+          ).innerHTML = `<i class="fas fa-lock"></i> Complete Payment - $${planDetails.price}/month`;
+        }
+      });
+    });
+
+    // Card number formatting
+    const cardInput = modal.querySelector('input[placeholder*="1234"]');
+    cardInput.addEventListener("input", (e) => {
+      let value = e.target.value.replace(/\s/g, "").replace(/[^0-9]/gi, "");
+      let formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
+      e.target.value = formattedValue;
+    });
+
+    // Expiry date formatting
+    const expiryInput = modal.querySelector('input[placeholder="MM/YY"]');
+    expiryInput.addEventListener("input", (e) => {
+      let value = e.target.value.replace(/\D/g, "");
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + "/" + value.substring(2, 4);
+      }
+      e.target.value = value;
+    });
+  }
+
+  getPlanDetails(planType) {
+    // 获取自定义的定价方案
+    const priceSlider = document.getElementById("price-slider");
+    const priceValue = document.getElementById("custom-price-value");
+    const conversionResult = document.getElementById("conversion-result");
+    
+    const plans = {
+      starter: {
+        name: "Starter",
+        price: 9,
+        features: [
+          "10 voice conversions per month(No limit on the number of times)",
+          "Basic voice options",
+          "Standard quality output",
+          "Email support",
+        ],
+      },
+      professional: {
+        name: "Professional",
+        price: 29,
+        features: [
+          "100 voice conversions per month (No limit on the number of times)",
+          "Premium voice library",
+          "HD quality output",
+          "Priority support",
+          "API access",
+        ],
+      },
+      enterprise: {
+        name: "Enterprise",
+        price: 99,
+        features: [
+          "Unlimited voice conversions",
+          "Custom voice training",
+          "Ultra HD quality",
+          "24/7 dedicated support",
+          "Full API access",
+          "Custom integrations",
+        ],
+      },
+      custom: {
+        name: "Custom",
+        price: priceSlider.value,
+        features: [
+          `Custom voice conversions: ${conversionResult.textContent}`,
+          "Custom voice library",
+          "Custom quality output",
+          "Custom support",
+        ],
+      }
+    };
+
+    return plans[planType] || plans.starter;
+  }
+
+  processPayment(planType) {
+    // Simulate payment processing
+    this.showMessage("Processing payment...", "info");
+
+    // Show loading state
+    const submitBtn = document.querySelector(".payment-submit-btn");
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML =
+      '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitBtn.disabled = true;
+
+    // Simulate API call
+    setTimeout(() => {
+      // Close payment modal
+      const paymentModal = document.getElementById("paymentModal");
+      if (paymentModal) this.closeModal(paymentModal);
+
+      // Show success message
+      this.showSuccessModal(planType);
+    }, 3000);
+  }
+
+  showSuccessModal(planType) {
+    const planDetails = this.getPlanDetails(planType);
+
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
             <div class="modal success-modal">
                 <div class="modal-body">
                     <div class="success-content">
@@ -396,46 +478,46 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listeners for buttons
-        const startConvertingBtn = modal.querySelector('#successStartConverting');
-        if (startConvertingBtn) {
-            startConvertingBtn.addEventListener('click', () => {
-                this.closeModal(modal);
-                this.scrollToSection('voice-recorder');
-            });
-        }
-        
-        const viewDashboardBtn = modal.querySelector('#successViewDashboard');
-        if (viewDashboardBtn) {
-            viewDashboardBtn.addEventListener('click', () => {
-                if (window.authManager) {
-                    window.authManager.showDashboard();
-                }
-                this.closeModal(modal);
-            });
-        }
-        
-        // Auto close after 10 seconds
-        setTimeout(() => {
-            if (modal.parentNode) {
-                this.closeModal(modal);
-            }
-        }, 10000);
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
+
+    document.body.appendChild(modal);
+
+    // Add event listeners for buttons
+    const startConvertingBtn = modal.querySelector("#successStartConverting");
+    if (startConvertingBtn) {
+      startConvertingBtn.addEventListener("click", () => {
+        this.closeModal(modal);
+        this.scrollToSection("voice-recorder");
+      });
     }
 
-    showContactModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.id = 'contactModal';
-        
-        modal.innerHTML = `
+    const viewDashboardBtn = modal.querySelector("#successViewDashboard");
+    if (viewDashboardBtn) {
+      viewDashboardBtn.addEventListener("click", () => {
+        if (window.authManager) {
+          window.authManager.showDashboard();
+        }
+        this.closeModal(modal);
+      });
+    }
+
+    // Auto close after 10 seconds
+    setTimeout(() => {
+      if (modal.parentNode) {
+        this.closeModal(modal);
+      }
+    }, 10000);
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+  }
+
+  showContactModal() {
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+    modal.id = "contactModal";
+
+    modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2>Contact Us</h2>
@@ -512,33 +594,36 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listener for close button
-        const closeBtn = modal.querySelector('#contactModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal(modal));
-        }
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
-        
-        // Handle form submission
-        const contactForm = modal.querySelector('#contactForm');
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.showMessage('Message sent successfully! We\'ll get back to you soon.', 'success');
-            this.closeModal(modal);
-        });
+
+    document.body.appendChild(modal);
+
+    // Add event listener for close button
+    const closeBtn = modal.querySelector("#contactModalClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closeModal(modal));
     }
 
-    showDocumentationModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        
-        modal.innerHTML = `
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+
+    // Handle form submission
+    const contactForm = modal.querySelector("#contactForm");
+    contactForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.showMessage(
+        "Message sent successfully! We'll get back to you soon.",
+        "success"
+      );
+      this.closeModal(modal);
+    });
+  }
+
+  showDocumentationModal() {
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
             <div class="modal documentation-modal">
                 <div class="modal-header">
                     <h2>Documentation</h2>
@@ -589,40 +674,40 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listener for close button
-        const closeBtn = modal.querySelector('#docModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal(modal));
-        }
-        
-        // Add event listeners for documentation links
-        // const docLinks = modal.querySelectorAll('.doc-section a');
-        // docLinks.forEach(link => {
-        //     link.addEventListener('click', (e) => {
-        //         e.preventDefault();
-        //         const linkText = link.textContent.trim();
-        //         this.showMessage(`Opening: ${linkText}`, 'info');
-        //         // Here you can add actual functionality for each link
-        //         setTimeout(() => {
-        //             this.closeModal(modal);
-        //         }, 1500);
-        //     });
-        // });
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
+
+    document.body.appendChild(modal);
+
+    // Add event listener for close button
+    const closeBtn = modal.querySelector("#docModalClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closeModal(modal));
     }
 
-    showPrivacyModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.id = 'privacyModal';
-        
-        modal.innerHTML = `
+    // Add event listeners for documentation links
+    // const docLinks = modal.querySelectorAll('.doc-section a');
+    // docLinks.forEach(link => {
+    //     link.addEventListener('click', (e) => {
+    //         e.preventDefault();
+    //         const linkText = link.textContent.trim();
+    //         this.showMessage(`Opening: ${linkText}`, 'info');
+    //         // Here you can add actual functionality for each link
+    //         setTimeout(() => {
+    //             this.closeModal(modal);
+    //         }, 1500);
+    //     });
+    // });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+  }
+
+  showPrivacyModal() {
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+    modal.id = "privacyModal";
+
+    modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2>Privacy Policy</h2>
@@ -665,25 +750,25 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listener for close button
-        const closeBtn = modal.querySelector('#privacyModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal(modal));
-        }
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
+
+    document.body.appendChild(modal);
+
+    // Add event listener for close button
+    const closeBtn = modal.querySelector("#privacyModalClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closeModal(modal));
     }
 
-    showTermsModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        
-        modal.innerHTML = `
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+  }
+
+  showTermsModal() {
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2>Terms & Conditions</h2>
@@ -731,25 +816,25 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listener for close button
-        const closeBtn = modal.querySelector('#termsModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal(modal));
-        }
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
+
+    document.body.appendChild(modal);
+
+    // Add event listener for close button
+    const closeBtn = modal.querySelector("#termsModalClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closeModal(modal));
     }
 
-    showRefundModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        
-        modal.innerHTML = `
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+  }
+
+  showRefundModal() {
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
                     <h2>Return & Refund Policy</h2>
@@ -803,25 +888,25 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listener for close button
-        const closeBtn = modal.querySelector('#refundModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal(modal));
-        }
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
+
+    document.body.appendChild(modal);
+
+    // Add event listener for close button
+    const closeBtn = modal.querySelector("#refundModalClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closeModal(modal));
     }
 
-    showApiAccessModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        
-        modal.innerHTML = `
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+  }
+
+  showApiAccessModal() {
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
             <div class="modal api-modal">
                 <div class="modal-header">
                     <h2>API Access</h2>
@@ -934,45 +1019,44 @@ class NavigationManager {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listener for close button
-        const closeBtn = modal.querySelector('#apiModalClose');
-        const viewPricingBtn = modal.querySelector('#viewPricingBtn');
 
-        if (viewPricingBtn) {
-            viewPricingBtn.addEventListener('click', () => {
-                window.navigationManager.scrollToSection('pricing');
-                modal.remove();
-            })
-            
-        }
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                modal.remove();
-            });
-        }
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
+    document.body.appendChild(modal);
+
+    // Add event listener for close button
+    const closeBtn = modal.querySelector("#apiModalClose");
+    const viewPricingBtn = modal.querySelector("#viewPricingBtn");
+
+    if (viewPricingBtn) {
+      viewPricingBtn.addEventListener("click", () => {
+        window.navigationManager.scrollToSection("pricing");
+        modal.remove();
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        modal.remove();
+      });
     }
 
-    closeModal(modal) {
-        if (modal && modal.parentNode) {
-            modal.remove();
-        }
-    }
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) this.closeModal(modal);
+    });
+  }
 
-    showMessage(message, type = 'info') {
-        if (window.voiceMorphApp && window.voiceMorphApp.showMessage) {
-            window.voiceMorphApp.showMessage(message, type);
-        } else {
-            // Fallback notification
-            console.log(`${type.toUpperCase()}: ${message}`);
-        }
+  closeModal(modal) {
+    if (modal && modal.parentNode) {
+      modal.remove();
     }
+  }
+
+  showMessage(message, type = "info") {
+    if (window.voiceMorphApp && window.voiceMorphApp.showMessage) {
+      window.voiceMorphApp.showMessage(message, type);
+    } else {
+      // Fallback notification
+      console.log(`${type.toUpperCase()}: ${message}`);
+    }
+  }
 }
 
 // Initialize navigation manager
